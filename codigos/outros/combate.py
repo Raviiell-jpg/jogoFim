@@ -19,9 +19,12 @@ class SistemaCombate:
         self.alcance_ataque = 30
         self.altura_ataque = 20
         self.hitbox_ataque = None
-        
+        self.hitbox_escudo = None
+
         # Dano
         self.dano_ataque = 35
+        self.forca_recuo_x = 7.5
+        self.forca_recuo_y = -6.5
         self.reducao_defesa = 0.8      # 80% de redução de dano ao defender (0.0 = anula 100%)
 
     def atualizar_direcao(self, vel_x):
@@ -48,6 +51,7 @@ class SistemaCombate:
     def parar_defesa(self):
         """Desativa o escudo."""
         self.defendendo = False
+        self.hitbox_escudo = None
 
     def atualizar(self, jogador_rect):
         """Atualiza a posição da hitbox de ataque e os contadores de tempo."""
@@ -75,11 +79,24 @@ class SistemaCombate:
         else:
             self.hitbox_ataque = None
 
+        if self.defendendo:
+            largura_escudo = 6
+            altura_escudo = jogador_rect.height - 4
+            if self.direcao == 1:
+                x_escudo = jogador_rect.right
+            else:
+                x_escudo = jogador_rect.left - largura_escudo
+            self.hitbox_escudo = pygame.Rect(
+                x_escudo, jogador_rect.y + 2, largura_escudo, altura_escudo
+            )
+        else:
+            self.hitbox_escudo = None
+
     def calcular_dano_recebido(self, dano_base):
         """Calcula o dano final considerando se está com o escudo levantado."""
         if self.defendendo:
             dano_final = dano_base * (1.0 - self.reducao_defesa)
-            return int(dano_final)
+            return int(round(dano_final, 8))
         return dano_base
 
     def desenhar(self, tela, camera_x, camera_y, jogador_rect):
@@ -95,15 +112,7 @@ class SistemaCombate:
             pygame.draw.rect(tela, (255, 200, 50), (hx, hy, self.hitbox_ataque.width, self.hitbox_ataque.height), 2)
 
         # Desenha o escudo à frente do jogador se estiver defendendo
-        if self.defendendo:
-            jx = jogador_rect.x - camera_x
-            jy = jogador_rect.y - camera_y
-
-            # Posiciona o escudo no lado que o jogador está virado
-            if self.direcao == 1:
-                escudo_rect = pygame.Rect(jx + jogador_rect.width, jy + 2, 6, jogador_rect.height - 4)
-            else:
-                escudo_rect = pygame.Rect(jx - 6, jy + 2, 6, jogador_rect.height - 4)
-
-            pygame.draw.rect(tela, (0, 191, 255), escudo_rect, border_radius=2)      # Azul ciano
-            pygame.draw.rect(tela, (255, 255, 255), escudo_rect, 1, border_radius=2) # Brilho branco
+        if self.defendendo and self.hitbox_escudo is not None:
+            escudo_rect = self.hitbox_escudo.move(-camera_x, -camera_y)
+            pygame.draw.rect(tela, (0, 191, 255), escudo_rect, border_radius=2)
+            pygame.draw.rect(tela, (255, 255, 255), escudo_rect, 1, border_radius=2)

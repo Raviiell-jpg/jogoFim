@@ -4,6 +4,7 @@ class SistemaSaude:
     def __init__(self, vida_maxima=100, tempo_imunidade_max=60):
         self.vida_maxima = vida_maxima
         self.vida_atual = vida_maxima
+        self.vida_visual = float(vida_maxima)
         self.tempo_invencivel = 0
         self.tempo_imunidade_max = tempo_imunidade_max
 
@@ -31,6 +32,10 @@ class SistemaSaude:
         """Atualiza a contagem dos frames de invulnerabilidade."""
         if self.tempo_invencivel > 0:
             self.tempo_invencivel -= 1
+        if abs(self.vida_visual - self.vida_atual) > 0.2:
+            self.vida_visual += (self.vida_atual - self.vida_visual) * 0.15
+        else:
+            self.vida_visual = float(self.vida_atual)
 
     def esta_vivo(self):
         return self.vida_atual > 0
@@ -43,6 +48,7 @@ class SistemaSaude:
 
     def reiniciar(self):
         self.vida_atual = self.vida_maxima
+        self.vida_visual = float(self.vida_maxima)
         self.tempo_invencivel = 0
 
     def desenhar_hud(self, tela):
@@ -51,12 +57,13 @@ class SistemaSaude:
         y_barra = 20
         largura_barra = 230
         altura_barra = 22
-        proporcao = max(0, int((self.vida_atual / self.vida_maxima) * largura_barra))
+        percentual = max(0.0, min(1.0, self.vida_visual / self.vida_maxima))
+        proporcao = int(percentual * largura_barra)
 
         # Cor dinâmica: verde, amarelo ou vermelho
-        if self.vida_atual > 50:
+        if percentual > 0.5:
             cor_vida = (135, 206, 250)
-        elif self.vida_atual > 25:
+        elif percentual > 0.25:
             cor_vida = (241, 196, 15)
         else:
             cor_vida = (231, 76, 60)

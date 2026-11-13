@@ -1,6 +1,7 @@
 
 import sys
 import subprocess
+from pathlib import Path
 
 from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton,QLabel, QGraphicsDropShadowEffect, QMessageBox)
 from PyQt6.QtGui import QFont, QPixmap,  QColor
@@ -20,13 +21,13 @@ class Menu(QWidget):
         imagem = QPixmap(r"C:\Users\RAFAELVICTORSOARESBI\.vscode\main\fundos\fundo.png")
 
         self.fundo.setPixmap(
-            imagem.scaled(1280, 720)
+            imagem.scaled(1600, 900)
         )
-        self.fundo.setGeometry(0, 0, 1280, 720)
+        self.fundo.setGeometry(0, 0, 1600, 900)
 
         # Subtitulo
         self.titulo2 = QLabel("Um sertão radioativo", self)
-        self.titulo2.setGeometry(0, 190, 1280, 100)
+        self.titulo2.setGeometry(0, 340, self.width(), 60)
         self.titulo2.setAlignment(
                     Qt.AlignmentFlag.AlignCenter
                 )
@@ -45,7 +46,7 @@ class Menu(QWidget):
 
         # Título
         self.titulo1 = QLabel("Por uma Gota", self)
-        self.titulo1.setGeometry(0, 120, 1280, 100)
+        self.titulo1.setGeometry(0, 240, self.width(), 100)
         self.titulo1.setAlignment(
             Qt.AlignmentFlag.AlignCenter
         )
@@ -65,7 +66,11 @@ class Menu(QWidget):
 
         # Botão iniciar
         self.iniciar = QPushButton("INICIAR JOGO", self)
-        self.iniciar.setGeometry(465, 330, 350, 65)
+        largura_botao_iniciar = 350
+        self.iniciar.setGeometry(
+            (self.width() - largura_botao_iniciar) // 2, 425,
+            largura_botao_iniciar, 65,
+        )
         self.iniciar.setFont(QFont("Press Start 2P", 12, QFont.Weight.Bold))
 
         self.iniciar.setStyleSheet("""
@@ -90,7 +95,10 @@ class Menu(QWidget):
 
         # Botão sair
         self.sair = QPushButton("SAIR", self)
-        self.sair.setGeometry(515, 420, 250, 65)
+        largura_botao = 250
+        self.sair.setGeometry(
+            (self.width() - largura_botao) // 2, 510, largura_botao, 65
+        )
         self.sair.clicked.connect(self.close)
         self.sair.setFont(QFont("Press Start 2P", 12, QFont.Weight.Bold))
 
@@ -113,7 +121,9 @@ class Menu(QWidget):
                 """)
         
         self.tutorial = QPushButton("TUTORIAL", self)
-        self.tutorial.setGeometry(515, 505, 250, 65)
+        self.tutorial.setGeometry(
+            (self.width() - largura_botao) // 2, 595, largura_botao, 65
+        )
         self.tutorial.clicked.connect(self.mostrar_tutorial)
         self.tutorial.setFont(QFont("Press Start 2P", 12, QFont.Weight.Bold))
         
@@ -157,8 +167,9 @@ class Menu(QWidget):
         
 
     def abrir_jogo(self):
-
-        subprocess.Popen([sys.executable, r"C:\Users\RAFAELVICTORSOARESBI\.vscode\main\main.py"])
+        caminho_historia = Path(__file__).resolve().parent / "historia" / "cena1.py"
+        subprocess.Popen([sys.executable, str(caminho_historia)])
+        self.close()
 
 
 app = QApplication(sys.argv)

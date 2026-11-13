@@ -4,6 +4,7 @@ from pathlib import Path
 from codigos.mapa.mapa_prototipo import Mapa
 from codigos.outros.saude_ import SistemaSaude
 from codigos.outros.combate import SistemaCombate
+from codigos.outros.inimigos import Inimigo
 
 # 1. Configurações Iniciais
 pygame.init()
@@ -18,6 +19,13 @@ mapa = Mapa()
 saude = SistemaSaude(vida_maxima=100)
 combate = SistemaCombate()
 
+
+def criar_inimigos():
+    return [Inimigo(x, y) for x, y in mapa.inimigos_iniciais]
+
+
+inimigos = criar_inimigos()
+
 # Fundo
 try:
     imagem_fundo = pygame.image.load(r"C:\Users\RAFAELVICTORSOARESBI\.vscode\main\fundos\predio.png").convert()
@@ -29,7 +37,7 @@ except pygame.error:
 PASTA_SPRITES = Path(__file__).parent / "prites"
 TAMANHO_SPRITE = (64, 88)
 sprite_parado = pygame.image.load(str(PASTA_SPRITES / "parado.png")).convert_alpha()
-sprite_parado = pygame.transform.scale(sprite_parado, TAMANHO_SPRITE)
+sprite_parado = pygame.transform.scale(sprite_parado, (48, 92))
 
 arquivos_andando = [
     PASTA_SPRITES / r"C:\Users\RAFAELVICTORSOARESBI\.vscode\main\prites\andando.png",
@@ -58,6 +66,7 @@ sprite_parado_esquerda = pygame.transform.flip(sprite_parado, True, False)
 jogador_rect = pygame.Rect(mapa.pos_inicial_jogador[0], mapa.pos_inicial_jogador[1], 24, 30)
 vel_x = 0
 vel_y = 0
+vel_recuo_x = 0.0
 velocidade_movimento = 5
 gravidade = 0.75
 forca_pulo = -15.5
@@ -70,12 +79,14 @@ COYOTE_MAX = 7
 BUFFER_MAX = 7
 
 def reiniciar_jogo():
-    global vel_x, vel_y, no_chao
+    global vel_x, vel_y, vel_recuo_x, no_chao, inimigos
     jogador_rect.topleft = mapa.pos_inicial_jogador
     saude.reiniciar()
     combate.parar_defesa()
+    inimigos = criar_inimigos()
     vel_x = 0
     vel_y = 0
+    vel_recuo_x = 0.0
     no_chao = False
 
 # Loop Principal
@@ -125,14 +136,12 @@ while executando:
             vel_x = -vel_atual
         if teclas[pygame.K_RIGHT] or teclas[pygame.K_d]:
             vel_x = vel_atual
+        if abs(vel_recuo_x) < 1.0:
+            combate.atualizar_direcao(vel_x)
         if vel_x < 0:
             direcao_jogador = -1
         elif vel_x > 0:
             direcao_jogador = 1
-
-        # Atualiza a direção do golpe/escudo
-        combate.atualizar_direcao(vel_x)
-        combate.atualizar(jogador_rect)
 
         # Buffers de salto
         if no_chao:
@@ -154,14 +163,22 @@ while executando:
         if vel_y > 15:
             vel_y = 15
 
+        if abs(vel_recuo_x) > 0.1:
+            vel_recuo_x *= 0.80
+        else:
+            vel_recuo_x = 0.0
+
         # Colisão Eixo X
-        jogador_rect.x += vel_x
+        deslocamento_x = int(vel_x + vel_recuo_x)
+        jogador_rect.x += deslocamento_x
         for bloco in mapa.blocos:
             if jogador_rect.colliderect(bloco):
-                if vel_x > 0:
+                if deslocamento_x > 0:
                     jogador_rect.right = bloco.left
-                elif vel_x < 0:
+                    vel_recuo_x = 0.0
+                elif deslocamento_x < 0:
                     jogador_rect.left = bloco.right
+                    vel_recuo_x = 0.0
 
         # Colisão Eixo Y
         jogador_rect.y += int(vel_y)
@@ -175,6 +192,89 @@ while executando:
                 elif vel_y < 0:
                     jogador_rect.top = bloco.bottom
                     vel_y = 0
+
+        combate.atualizar(jogador_rect)
+
+        for inimigo in inimigos:
+            inimigo.atualizar(
+                mapa.blocos, jogador_rect, combate.hitbox_escudo
+            )
+
+            if combate.defendendo and combate.hitbox_escudo is not None:
+                if combate.hitbox_escudo.colliderect(inimigo.rect):
+                    if combate.direcao == 1:
+                        inimigo.rect.left = combate.hitbox_escudo.right
+                    else:
+                        inimigo.rect.right = combate.hitbox_escudo.left
+                    if inimigo.tempo_atordoado <= 0:
+                        inimigo.aplicar_pulinho_recuo(
+                            combate.direcao, forca_x=6.5, forca_y=-6.0
+                        )
+                        inimigo.tempo_atordoado = 25
+
+            if combate.atacando and combate.hitbox_ataque is not None:
+                if combate.hitbox_ataque.colliderect(inimigo.rect):
+                    if inimigo.tomar_dano(
+                        combate.dano_ataque, combate.direcao
+                    ):
+                        vel_recuo_x = -combate.direcao * combate.forca_recuo_x
+                        vel_y = combate.forca_recuo_y
+                        no_chao = False
+
+            if (
+                inimigo.esta_vivo
+                and inimigo.atacando
+                and inimigo.hitbox_ataque is not None
+                and inimigo.hitbox_ataque.colliderect(jogador_rect)
+            ):
+                bloqueado_pela_frente = (
+                    combate.defendendo
+                    and (
+                        (
+                            combate.direcao == 1
+                            and inimigo.rect.centerx >= jogador_rect.centerx
+                        )
+                        or (
+                            combate.direcao == -1
+                            and inimigo.rect.centerx <= jogador_rect.centerx
+                        )
+                    )
+                )
+                if not bloqueado_pela_frente and saude.tomar_dano(
+                    inimigo.dano_ataque
+                ):
+                    vel_y = -8
+                    direcao_impacto = (
+                        -1
+                        if inimigo.rect.centerx > jogador_rect.centerx
+                        else 1
+                    )
+                    vel_recuo_x = direcao_impacto * 6.5
+
+            if inimigo.esta_vivo and jogador_rect.colliderect(inimigo.rect):
+                bloqueado_pela_frente = (
+                    combate.defendendo
+                    and (
+                        (
+                            combate.direcao == 1
+                            and inimigo.rect.centerx >= jogador_rect.centerx
+                        )
+                        or (
+                            combate.direcao == -1
+                            and inimigo.rect.centerx <= jogador_rect.centerx
+                        )
+                    )
+                )
+                if not bloqueado_pela_frente and saude.tomar_dano(15):
+                    vel_y = -8
+                    direcao_impacto = (
+                        -1
+                        if inimigo.rect.centerx > jogador_rect.centerx
+                        else 1
+                    )
+                    vel_recuo_x = direcao_impacto * 6.0
+
+        inimigos = [inimigo for inimigo in inimigos if inimigo.esta_vivo]
 
         # Dano com mitigação pelo escudo
         for espinho in mapa.espinhos:
@@ -214,6 +314,12 @@ while executando:
 
     # Desenho do mapa
     mapa.desenhar(tela, camera_x, camera_y, LARGURA_TELA, ALTURA_TELA)
+
+    # Desenho dos inimigos
+    for inimigo in inimigos:
+        inimigo.desenhar(
+            tela, camera_x, camera_y, LARGURA_TELA, ALTURA_TELA
+        )
 
     # Desenho do Jogador
     if saude.esta_vivo() and saude.deve_desenhar_jogador():

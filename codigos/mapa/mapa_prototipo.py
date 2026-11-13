@@ -2,6 +2,10 @@ import pygame
 from pathlib import Path
 
 TILE_SIZE = 32
+INIMIGOS_INICIAIS = [
+    (39, 4), (9, 10), (43, 10), (70, 10),
+    (43, 22), (9, 28), (63, 28), (73, 40), (17, 46),
+]
 
 DADOS_MAPA = [
     # Topo / Terraço
@@ -115,10 +119,17 @@ class Mapa:
                     self.blocos.append(pygame.Rect(pos_x, pos_y, self.tile_size, self.tile_size))
                 elif caractere == "P":
                     self.pos_inicial_jogador = (pos_x, pos_y)
+                elif caractere == "M":
+                    self.moedas.append(pygame.Rect(pos_x + 8, pos_y + 8, 16, 16))
                 elif caractere == "S":
                     self.espinhos.append(pygame.Rect(pos_x, pos_y + 16, self.tile_size, 16))
                 elif caractere == "H":
                     self.kits_medicos.append(pygame.Rect(pos_x + 6, pos_y + 6, 20, 20))
+
+        self.inimigos_iniciais = [
+            (coluna * self.tile_size, linha * self.tile_size)
+            for coluna, linha in INIMIGOS_INICIAIS
+        ]
 
     def desenhar(self, tela, camera_x, camera_y, largura_tela, altura_tela):
         # A textura usa coordenadas do mapa para não reiniciar em cada bloco.
@@ -158,4 +169,10 @@ class Mapa:
                         tela, (46, 204, 113),
                         (visual_cura.x + 5, visual_cura.y + 13, 22, 6)
                     )
+
+        for moeda in self.moedas:
+            cx = moeda.centerx - camera_x
+            cy = moeda.centery - camera_y
+            if -16 < cx < largura_tela + 16 and -16 < cy < altura_tela + 16:
+                pygame.draw.circle(tela, (255, 215, 0), (cx, cy), 8)
 #
