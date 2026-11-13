@@ -8,6 +8,9 @@ from PyQt6.QtGui import QFont, QPixmap,  QColor
 from PyQt6.QtCore import Qt
 
 
+PASTA_PROJETO = Path(__file__).resolve().parent
+
+
 class Menu(QWidget):
 
     def __init__(self):
@@ -18,7 +21,7 @@ class Menu(QWidget):
 
         # Fundo
         self.fundo = QLabel(self)
-        imagem = QPixmap(r"C:\jogoPrototipo\main\fundos\fundo.png")
+        imagem = QPixmap(str(PASTA_PROJETO / "fundos" / "fundo.png"))
 
         self.fundo.setPixmap(
             imagem.scaled(1600, 900)

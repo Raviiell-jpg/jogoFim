@@ -10,6 +10,7 @@ from codigos.outros.inimigos import Inimigo
 pygame.init()
 LARGURA_TELA = 1600
 ALTURA_TELA = 900
+PASTA_PROJETO = Path(__file__).resolve().parent
 tela = pygame.display.set_mode((LARGURA_TELA, ALTURA_TELA))
 pygame.display.set_caption("Por uma Gota")
 relogio = pygame.time.Clock()
@@ -28,20 +29,22 @@ inimigos = criar_inimigos()
 
 # Fundo
 try:
-    imagem_fundo = pygame.image.load(r"C:\jogoPrototipo\main\fundos\predio.png").convert()
+    imagem_fundo = pygame.image.load(
+        str(PASTA_PROJETO / "fundos" / "predio.png")
+    ).convert()
     tem_imagem_fundo = True
 except pygame.error:
     tem_imagem_fundo = False
 
 # Sprites do jogador
-PASTA_SPRITES = Path(__file__).parent / "prites"
+PASTA_SPRITES = PASTA_PROJETO / "prites"
 TAMANHO_SPRITE = (64, 88)
 sprite_parado = pygame.image.load(str(PASTA_SPRITES / "parado.png")).convert_alpha()
 sprite_parado = pygame.transform.scale(sprite_parado, (48, 92))
 
 arquivos_andando = [
-    PASTA_SPRITES / r"C:\Users\RAFAELVICTORSOARESBI\.vscode\main\prites\andando.png",
-    PASTA_SPRITES / r"C:\Users\RAFAELVICTORSOARESBI\.vscode\main\prites\andando1.png",
+    PASTA_SPRITES / "andando.png",
+    PASTA_SPRITES / "andando1.png",
 ]
 arquivos_faltando = [arquivo for arquivo in arquivos_andando if not arquivo.is_file()]
 if arquivos_faltando:

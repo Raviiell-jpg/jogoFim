@@ -1,14 +1,17 @@
 
 import tkinter as tk
 from tkinter import ttk
+from pathlib import Path
 from PIL import Image, ImageTk
+
+PASTA_PROJETO = Path(__file__).resolve().parents[1]
 
 jogo = tk.Tk()
 jogo.geometry("1980x1080")
 jogo.title("Em busca da esperança")
 
 # Carregar imagem de fundo
-imagem = Image.open(r"C:\Users\RAFAELVICTORSOARESBI\.vscode\prototipo_jogo\.venv\c.png")
+imagem = Image.open(PASTA_PROJETO / "fundos" / "fundo.png")
 imagem = imagem.resize((1980, 1080))
 fundo = ImageTk.PhotoImage(imagem)
 

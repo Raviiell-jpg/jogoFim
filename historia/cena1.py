@@ -16,7 +16,7 @@ class CenaHistoria(QWidget):
         self.setWindowTitle("Por uma Gota - História")
         self.setFixedSize(1600, 900)
 
-        caminho_imagem = PASTA_PROJETO / "fundos" / "cena1.jpg"
+        caminho_imagem = PASTA_PROJETO / "fundos" / "cenaAntes.jpg"
         imagem = QPixmap(str(caminho_imagem))
         if imagem.isNull():
             QMessageBox.critical(
@@ -38,11 +38,12 @@ class CenaHistoria(QWidget):
         self.fundo.setGeometry(0, 0, self.width(), self.height())
 
         self.texto = QLabel(
-            "No sertão, cada gota de água pode mudar o destino.", self
+            "Numa antiga cidade situada na região nordeste chamada Serra Talhada, existia um espaço onde o conceito de humanidade conseguia ser usado sem medo, onde a população vivia em harmonia. Ao menos antes de tudo vir a acontecer", self
         )
-        self.texto.setGeometry(100, 700, 1400, 70)
+        self.texto.setGeometry(100, 600, 1400, 150)
         self.texto.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.texto.setFont(QFont("Press Start 2P", 10, QFont.Weight.Bold))
+        self.texto.setWordWrap(True)
+        self.texto.setFont(QFont("Press Start 2P", 14, QFont.Weight.Bold))
         self.texto.setStyleSheet(
             "color: white; background-color: rgba(0, 0, 0, 170); padding: 12px;"
         )
@@ -53,23 +54,23 @@ class CenaHistoria(QWidget):
         self.continuar.setStyleSheet(
             """
             QPushButton {
-                background-color: #087a24;
+                background-color: lightblue;
                 color: white;
-                border: 3px solid #39ff14;
+                border: 3px solid #2874A6;
                 padding: 8px;
             }
             QPushButton:hover {
-                background-color: #39ff14;
-                color: #003300;
+                background-color: #5DADE2 ;
+                color: #white;
             }
             """
         )
-        self.continuar.clicked.connect(self.abrir_jogo)
+        self.continuar.clicked.connect(self.abrir_proxima_cena)
         self.fundo.lower()
 
-    def abrir_jogo(self):
-        caminho_jogo = PASTA_PROJETO / "main.py"
-        subprocess.Popen([sys.executable, str(caminho_jogo)])
+    def abrir_proxima_cena(self):
+        caminho_cena = Path(__file__).with_name("cena2.py")
+        subprocess.Popen([sys.executable, str(caminho_cena)])
         self.close()
 
 

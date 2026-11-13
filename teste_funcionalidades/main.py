@@ -1,5 +1,6 @@
 import pygame
 import sys
+from pathlib import Path
 from mapa import Mapa
 from saude import SistemaSaude
 from combate import SistemaCombate
@@ -25,7 +26,8 @@ inimigos = criar_inimigos()
 
 # Fundo
 try:
-    imagem_fundo = pygame.image.load("fundo.jpg").convert()
+    caminho_fundo = Path(__file__).resolve().parent / "fundo.jpg"
+    imagem_fundo = pygame.image.load(str(caminho_fundo)).convert()
     imagem_fundo = pygame.transform.scale(imagem_fundo, (LARGURA_TELA, ALTURA_TELA))
     tem_imagem_fundo = True
 except pygame.error:
