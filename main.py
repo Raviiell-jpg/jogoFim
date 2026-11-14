@@ -67,30 +67,56 @@ except pygame.error:
 
 # Sprites do jogador
 PASTA_SPRITES = PASTA_PROJETO / "prites"
-TAMANHO_SPRITE = (64, 88)
-sprite_parado = pygame.image.load(str(PASTA_SPRITES / "parado.png")).convert_alpha()
-sprite_parado = pygame.transform.scale(sprite_parado, (48, 92))
+TAMANHO_SPRITE = (48, 92)
 
-arquivos_andando = [
-    PASTA_SPRITES / "andando.png",
-    PASTA_SPRITES / "andando1.png",
-]
-arquivos_faltando = [arquivo for arquivo in arquivos_andando if not arquivo.is_file()]
-if arquivos_faltando:
-    nomes_faltando = ", ".join(arquivo.name for arquivo in arquivos_faltando)
-    print(f"AVISO: sprites de caminhada ausentes ({nomes_faltando}); usando parado.png.")
-    quadros_andando = [sprite_parado]
-else:
-    quadros_andando = [
-        pygame.transform.scale(
-            pygame.image.load(str(arquivo)).convert_alpha(),
-            TAMANHO_SPRITE,
+
+def carregar_quadros_spritesheet(nome_arquivo, quantidade_quadros, largura_fixa=None):
+    folha = pygame.image.load(str(PASTA_SPRITES / nome_arquivo)).convert_alpha()
+    largura_folha, altura_folha = folha.get_size()
+    quadros = []
+
+    for indice in range(quantidade_quadros):
+        inicio_x = indice * largura_folha // quantidade_quadros
+        fim_x = (indice + 1) * largura_folha // quantidade_quadros
+        quadro = folha.subsurface(
+            (inicio_x, 0, fim_x - inicio_x, altura_folha)
+        ).copy()
+        limites_visiveis = quadro.get_bounding_rect(min_alpha=8)
+        if limites_visiveis.width == 0 or limites_visiveis.height == 0:
+            raise ValueError(
+                f"O quadro {indice + 1} de {nome_arquivo} está vazio."
+            )
+        quadro = quadro.subsurface(limites_visiveis).copy()
+
+        if largura_fixa is None:
+            largura = round(
+                quadro.get_width() * TAMANHO_SPRITE[1] / quadro.get_height()
+            )
+        else:
+            largura = largura_fixa
+        quadros.append(
+            pygame.transform.scale(
+                quadro, (max(1, largura), TAMANHO_SPRITE[1])
+            )
         )
-        for arquivo in arquivos_andando
-    ]
+
+    return quadros
+
+
+quadros_andando = carregar_quadros_spritesheet("adnar.png", 4, largura_fixa=48)
+quadros_ataque = carregar_quadros_spritesheet("luta.png", 3)
+quadros_defesa = carregar_quadros_spritesheet("defesa.png", 2)
+
+sprite_parado = quadros_andando[0]
 
 quadros_andando_esquerda = [
     pygame.transform.flip(quadro, True, False) for quadro in quadros_andando
+]
+quadros_ataque_esquerda = [
+    pygame.transform.flip(quadro, True, False) for quadro in quadros_ataque
+]
+quadros_defesa_esquerda = [
+    pygame.transform.flip(quadro, True, False) for quadro in quadros_defesa
 ]
 sprite_parado_esquerda = pygame.transform.flip(sprite_parado, True, False)
 
@@ -362,7 +388,28 @@ while executando:
             jogador_rect.height,
         )
 
-        if vel_x != 0:
+        if combate.atacando:
+            progresso_ataque = combate.duracao_ataque - combate.timer_ataque
+            indice_quadro = min(
+                progresso_ataque * len(quadros_ataque)
+                // combate.duracao_ataque,
+                len(quadros_ataque) - 1,
+            )
+            sprite_atual = (
+                quadros_ataque[indice_quadro]
+                if direcao_jogador > 0
+                else quadros_ataque_esquerda[indice_quadro]
+            )
+        elif combate.defendendo:
+            indice_quadro = (
+                pygame.time.get_ticks() // 220
+            ) % len(quadros_defesa)
+            sprite_atual = (
+                quadros_defesa[indice_quadro]
+                if direcao_jogador > 0
+                else quadros_defesa_esquerda[indice_quadro]
+            )
+        elif vel_x != 0:
             indice_quadro = (pygame.time.get_ticks() // 120) % len(quadros_andando)
             sprite_atual = (
                 quadros_andando[indice_quadro]
@@ -375,11 +422,8 @@ while executando:
             )
 
         # Posiciona o sprite alinhado aos pés
-        sprite_rect = sprite_atual.get_rect(midbottom=(jt.centerx, jt.bottom + 20))
+        sprite_rect = sprite_atual.get_rect(midbottom=(jt.centerx, jt.bottom))
         tela.blit(sprite_atual, sprite_rect)
-
-        # Desenha espada/hitbox e escudo
-        combate.desenhar(tela, camera_x, camera_y, jogador_rect)
 
     # HUD e Game Over
     saude.desenhar_hud(tela)
