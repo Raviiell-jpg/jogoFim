@@ -1,0 +1,6 @@
+PyQt6
+pygame
+pymysql
+pathlib
+subprocess
+sys

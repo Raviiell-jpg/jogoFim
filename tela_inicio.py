@@ -1,11 +1,11 @@
 
 import sys
-import subprocess
 from pathlib import Path
 
 from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton,QLabel, QGraphicsDropShadowEffect, QMessageBox)
 from PyQt6.QtGui import QFont, QPixmap,  QColor
 from PyQt6.QtCore import Qt
+from historia.navegacao import abrir_pagina, mostrar_janela
 
 
 PASTA_PROJETO = Path(__file__).resolve().parent
@@ -171,13 +171,10 @@ class Menu(QWidget):
 
     def abrir_jogo(self):
         caminho_historia = Path(__file__).resolve().parent / "historia" / "cena1.py"
-        subprocess.Popen([sys.executable, str(caminho_historia)])
-        self.close()
+        abrir_pagina(self, caminho_historia, self.iniciar)
 
 
-app = QApplication(sys.argv)
-
-janela = Menu()
-janela.show()
-
-sys.exit(app.exec())
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    janela = mostrar_janela(Menu())
+    sys.exit(app.exec())

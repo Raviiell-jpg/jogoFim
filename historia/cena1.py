@@ -1,10 +1,14 @@
-import subprocess
 import sys
 from pathlib import Path
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 from PyQt6.QtWidgets import QApplication, QLabel, QMessageBox, QPushButton, QWidget
+
+if __package__:
+    from .navegacao import abrir_pagina, mostrar_janela
+else:
+    from navegacao import abrir_pagina, mostrar_janela
 
 
 PASTA_PROJETO = Path(__file__).resolve().parents[1]
@@ -70,11 +74,10 @@ class CenaHistoria(QWidget):
 
     def abrir_proxima_cena(self):
         caminho_cena = Path(__file__).with_name("cena2.py")
-        subprocess.Popen([sys.executable, str(caminho_cena)])
-        self.close()
+        abrir_pagina(self, caminho_cena, self.continuar)
 
 
-app = QApplication(sys.argv)
-janela = CenaHistoria()
-janela.show()
-sys.exit(app.exec())
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    janela = mostrar_janela(CenaHistoria())
+    sys.exit(app.exec())

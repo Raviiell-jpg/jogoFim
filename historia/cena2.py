@@ -1,10 +1,14 @@
-import subprocess
 import sys
 from pathlib import Path
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 from PyQt6.QtWidgets import QApplication, QLabel, QMessageBox, QPushButton, QWidget
+
+if __package__:
+    from .navegacao import abrir_pagina, mostrar_janela
+else:
+    from navegacao import abrir_pagina, mostrar_janela
 
 
 PASTA_PROJETO = Path(__file__).resolve().parents[1]
@@ -16,7 +20,7 @@ class CenaHistoria(QWidget):
         self.setWindowTitle("Por uma Gota - História")
         self.setFixedSize(1600, 900)
 
-        caminho_imagem = PASTA_PROJETO / "fundos" / "historia.jpg"
+        caminho_imagem = PASTA_PROJETO / "fundos" / "cena2.png"
         imagem = QPixmap(str(caminho_imagem))
         if imagem.isNull():
             QMessageBox.critical(
@@ -38,8 +42,8 @@ class CenaHistoria(QWidget):
         self.fundo.setGeometry(0, 0, self.width(), self.height())
 
         self.texto = QLabel(
-            "A contaminação tomou conta da região, e a água se tornou cada vez "
-            "mais rara. Agora, é preciso encontrar um jeito de sobreviver.",
+            "Foi então que tudo começou a ruir,  o céu antes azulado brilhando com o sol, se tornava cada vez mais verde. A população que antes vivia em harmonia se encontrava em desespero completo. "
+            "O que antes se encontrava com facilidade, agora se tornava escasso. A água, a sede, a fome e a morte tomou conta da vila.",
             self,
         )
         self.texto.setGeometry(100, 620, 1400, 150)
@@ -71,12 +75,11 @@ class CenaHistoria(QWidget):
         self.fundo.lower()
 
     def iniciar_jogo(self):
-        caminho_jogo = PASTA_PROJETO / "main.py"
-        subprocess.Popen([sys.executable, str(caminho_jogo)])
-        self.close()
+        caminho_jogo = PASTA_PROJETO / "historia" / "cena3.py"
+        abrir_pagina(self, caminho_jogo, self.continuar)
 
 
-app = QApplication(sys.argv)
-janela = CenaHistoria()
-janela.show()
-sys.exit(app.exec())
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    janela = mostrar_janela(CenaHistoria())
+    sys.exit(app.exec())

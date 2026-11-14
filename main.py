@@ -1,3 +1,4 @@
+import random
 import pygame
 import sys
 from pathlib import Path
@@ -5,6 +6,10 @@ from codigos.mapa.mapa_prototipo import Mapa
 from codigos.outros.saude_ import SistemaSaude
 from codigos.outros.combate import SistemaCombate
 from codigos.outros.inimigos import Inimigo
+from codigos.outros.monstros import (
+    carregar_imagens_monstros,
+    separar_spritesheet,
+)
 
 # 1. Configurações Iniciais
 pygame.init()
@@ -14,6 +19,23 @@ PASTA_PROJETO = Path(__file__).resolve().parent
 tela = pygame.display.set_mode((LARGURA_TELA, ALTURA_TELA))
 pygame.display.set_caption("Por uma Gota")
 relogio = pygame.time.Clock()
+GRADE_SPRITES_MONSTROS = {
+    "tatu": (2, 2),
+    "rato": (2, 2),
+    "lagartixa": (1, 4),
+}
+imagens_monstros = carregar_imagens_monstros()
+nomes_monstros_ausentes = [
+    nome for nome in GRADE_SPRITES_MONSTROS if nome not in imagens_monstros
+]
+if nomes_monstros_ausentes:
+    raise FileNotFoundError(
+        "Sprites de monstros ausentes: " + ", ".join(nomes_monstros_ausentes)
+    )
+quadros_monstros = [
+    separar_spritesheet(imagens_monstros[nome], linhas, colunas)
+    for nome, (linhas, colunas) in GRADE_SPRITES_MONSTROS.items()
+]
 
 # Instancia os módulos
 mapa = Mapa()
@@ -22,7 +44,14 @@ combate = SistemaCombate()
 
 
 def criar_inimigos():
-    return [Inimigo(x, y) for x, y in mapa.inimigos_iniciais]
+    return [
+        Inimigo(
+            x,
+            y,
+            quadros=random.choice(quadros_monstros),
+        )
+        for x, y in mapa.inimigos_iniciais
+    ]
 
 
 inimigos = criar_inimigos()
