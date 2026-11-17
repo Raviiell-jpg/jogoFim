@@ -79,7 +79,7 @@ class CenaHistoria(QWidget):
         self.fundo.lower()
 
     def iniciar_jogo(self):
-        caminho_jogo = PASTA_PROJETO / "main.py"
+        caminho_jogo = PASTA_PROJETO / "final.py"
         abrir_pagina(self, caminho_jogo, self.continuar)
 
 
