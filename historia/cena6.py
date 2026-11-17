@@ -42,7 +42,7 @@ class CenaHistoria(QWidget):
         self.fundo.setGeometry(0, 0, self.width(), self.height())
 
         self.texto = QLabel(
-            "Corri para dentro do prédio da cidade em busca de segurança e água, e lá conseguimos ficar por um tempo, no entanto, um dia tudo acaba, e conosco, o mesmo aconteceu. E agora o lugar onde antes lutava para entrar, será o mesmo que luto para sair. ",
+            "Lá uma luz, uma carta com a localização de um possível espaço com água potável. E então, agora, o lugar que antes entrei para sair, vai ser o mesmo que irei lutar para fugir em busca por uma gota. ",
             self,
         )
         self.texto.setGeometry(100, 620, 1400, 150)

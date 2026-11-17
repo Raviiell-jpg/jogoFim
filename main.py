@@ -102,7 +102,7 @@ def carregar_quadros_spritesheet(nome_arquivo, quantidade_quadros, largura_fixa=
 
     return quadros
 
-
+quadros_pulo = carregar_quadros_spritesheet("pulo.png", 2)
 quadros_andando = carregar_quadros_spritesheet("adnar.png", 4, largura_fixa=48)
 quadros_ataque = carregar_quadros_spritesheet("luta.png", 3)
 quadros_defesa = carregar_quadros_spritesheet("defesa.png", 2)
@@ -118,6 +118,9 @@ quadros_ataque_esquerda = [
 quadros_defesa_esquerda = [
     pygame.transform.flip(quadro, True, False) for quadro in quadros_defesa
 ]
+quadros_pulo_esquerda = [
+    pygame.transform.flip(quadro, True, False) for quadro in quadros_pulo
+]
 sprite_parado_esquerda = pygame.transform.flip(sprite_parado, True, False)
 
 # Jogador e Física
@@ -129,6 +132,7 @@ velocidade_movimento = 5
 gravidade = 0.75
 forca_pulo = -15.5
 no_chao = False
+pulando = False
 direcao_jogador = 1
 
 coyote_timer = 0
@@ -137,7 +141,7 @@ COYOTE_MAX = 7
 BUFFER_MAX = 7
 
 def reiniciar_jogo():
-    global vel_x, vel_y, vel_recuo_x, no_chao, inimigos
+    global vel_x, vel_y, vel_recuo_x, no_chao, pulando, inimigos
     jogador_rect.topleft = mapa.pos_inicial_jogador
     saude.reiniciar()
     combate.parar_defesa()
@@ -146,6 +150,7 @@ def reiniciar_jogo():
     vel_y = 0
     vel_recuo_x = 0.0
     no_chao = False
+    pulando = False
 
 # Loop Principal
 executando = True
@@ -215,6 +220,7 @@ while executando:
             coyote_timer = 0
             buffer_pulo_timer = 0
             no_chao = False
+            pulando = True
 
         # Gravidade
         vel_y += gravidade
@@ -250,6 +256,9 @@ while executando:
                 elif vel_y < 0:
                     jogador_rect.top = bloco.bottom
                     vel_y = 0
+
+        if no_chao:
+            pulando = False
 
         combate.atualizar(jogador_rect)
 
@@ -408,6 +417,13 @@ while executando:
                 quadros_defesa[indice_quadro]
                 if direcao_jogador > 0
                 else quadros_defesa_esquerda[indice_quadro]
+            )
+        elif pulando:
+            indice_quadro = (pygame.time.get_ticks() // 180) % len(quadros_pulo)
+            sprite_atual = (
+                quadros_pulo[indice_quadro]
+                if direcao_jogador > 0
+                else quadros_pulo_esquerda[indice_quadro]
             )
         elif vel_x != 0:
             indice_quadro = (pygame.time.get_ticks() // 120) % len(quadros_andando)

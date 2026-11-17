@@ -53,10 +53,10 @@ class SistemaSaude:
 
     def desenhar_hud(self, tela):
         """Desenha a barra de vida fixa na tela."""
-        x_barra = 20
-        y_barra = 20
+        x_barra = 40
+        y_barra = 40
         largura_barra = 230
-        altura_barra = 22
+        altura_barra = 30
         percentual = max(0.0, min(1.0, self.vida_visual / self.vida_maxima))
         proporcao = int(percentual * largura_barra)
 
@@ -74,7 +74,13 @@ class SistemaSaude:
         pygame.draw.rect(tela, (255, 255, 255), (x_barra, y_barra, largura_barra, altura_barra), 2)
 
         texto = self.fonte_hud.render(f"Sede: {self.vida_atual}/{self.vida_maxima}", True, (255, 255, 255))
-        tela.blit(texto, (x_barra, y_barra + 2))
+        texto_rect = texto.get_rect(
+            center=(
+                x_barra + largura_barra // 2,
+                y_barra + altura_barra // 2,
+            )
+        )
+        tela.blit(texto, texto_rect)
 
     def desenhar_game_over(self, tela, largura_tela, altura_tela):
         """Desenha tela translúcida de Game Over com aviso de reinício."""

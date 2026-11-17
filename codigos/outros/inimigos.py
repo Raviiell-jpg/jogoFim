@@ -3,6 +3,7 @@ import pygame
 
 class Inimigo:
     DURACAO_QUADRO_MS = 120
+    DURACAO_ATAQUE = 12
     ESCALA_SPRITE = 2.4
 
     def __init__(
@@ -15,6 +16,7 @@ class Inimigo:
         velocidade=2,
         imagem=None,
         quadros=None,
+        quadros_ataque=None,
     ):
         self.rect = pygame.Rect(x, y, largura, altura)
         if quadros is not None:
@@ -23,6 +25,10 @@ class Inimigo:
             imagens = [imagem]
         else:
             imagens = []
+        if quadros_ataque and not imagens:
+            raise ValueError(
+                "Os quadros de ataque exigem pelo menos um quadro normal."
+            )
         if imagens:
             altura_sprite = round(altura * self.ESCALA_SPRITE)
             largura_sprite = max(
@@ -42,9 +48,19 @@ class Inimigo:
                 pygame.transform.flip(quadro, True, False)
                 for quadro in self.quadros
             ]
+            self.quadros_ataque = [
+                pygame.transform.scale(quadro, tamanho_sprite)
+                for quadro in (quadros_ataque or [])
+            ]
+            self.quadros_ataque_esquerda = [
+                pygame.transform.flip(quadro, True, False)
+                for quadro in self.quadros_ataque
+            ]
         else:
             self.quadros = []
             self.quadros_esquerda = []
+            self.quadros_ataque = []
+            self.quadros_ataque_esquerda = []
         self.vida = vida
         self.vida_maxima = vida
         self.velocidade = velocidade
@@ -85,7 +101,7 @@ class Inimigo:
             self.timer_preparacao -= 1
             if self.timer_preparacao <= 0:
                 self.atacando = True
-                self.timer_ataque = 12
+                self.timer_ataque = self.DURACAO_ATAQUE
 
         if self.atacando:
             self.timer_ataque -= 1
@@ -208,16 +224,10 @@ class Inimigo:
         ix = self.rect.x - camera_x
         iy = self.rect.y - camera_y
         if -40 < ix < largura_tela and -40 < iy < altura_tela:
-            if self.tempo_dano > 7:
-                cor = (255, 255, 255)
-            elif self.timer_preparacao > 0:
-                cor = (230, 126, 34)
-            else:
-                cor = (142, 68, 173)
-
             if not self.quadros:
                 pygame.draw.rect(
-                    tela, cor, (ix, iy, self.rect.width, self.rect.height),
+                    tela, (142, 68, 173),
+                    (ix, iy, self.rect.width, self.rect.height),
                     border_radius=3,
                 )
 
@@ -230,48 +240,39 @@ class Inimigo:
                     tela, (0, 0, 0), (olho_pupila_x, iy + 8, 3, 3)
                 )
             else:
-                indice_quadro = (
-                    pygame.time.get_ticks() // self.DURACAO_QUADRO_MS
-                ) % len(self.quadros)
-                quadros = (
-                    self.quadros if self.direcao == 1 else self.quadros_esquerda
-                )
+                if self.atacando and self.quadros_ataque:
+                    progresso_ataque = (
+                        self.DURACAO_ATAQUE - self.timer_ataque
+                    )
+                    indice_quadro = min(
+                        progresso_ataque
+                        * len(self.quadros_ataque)
+                        // self.DURACAO_ATAQUE,
+                        len(self.quadros_ataque) - 1,
+                    )
+                    quadros = (
+                        self.quadros_ataque
+                        if self.direcao == 1
+                        else self.quadros_ataque_esquerda
+                    )
+                else:
+                    indice_quadro = (
+                        pygame.time.get_ticks() // self.DURACAO_QUADRO_MS
+                    ) % len(self.quadros)
+                    quadros = (
+                        self.quadros
+                        if self.direcao == 1
+                        else self.quadros_esquerda
+                    )
                 imagem = quadros[indice_quadro]
                 posicao_imagem = (
                     ix + (self.rect.width - imagem.get_width()) // 2,
                     iy + self.rect.height - imagem.get_height(),
                 )
                 tela.blit(imagem, posicao_imagem)
-                if self.tempo_dano > 7 or self.timer_preparacao > 0:
-                    sobreposicao = pygame.Surface(
-                        imagem.get_size(), pygame.SRCALPHA
-                    )
-                    sobreposicao.fill((*cor, 120))
-                    tela.blit(sobreposicao, posicao_imagem)
-
-            if self.hitbox_ataque is not None:
-                hx = self.hitbox_ataque.x - camera_x
-                hy = self.hitbox_ataque.y - camera_y
-                surf_ataque = pygame.Surface(
-                    (self.hitbox_ataque.width, self.hitbox_ataque.height),
-                    pygame.SRCALPHA,
-                )
-                surf_ataque.fill((231, 76, 60, 180))
-                tela.blit(surf_ataque, (hx, hy))
-                pygame.draw.rect(
-                    tela,
-                    (255, 100, 100),
-                    (hx, hy, self.hitbox_ataque.width, self.hitbox_ataque.height),
-                    2,
-                )
 
             largura_barra = self.rect.width
             vida_proporcional = max(
                 0, int((self.vida / self.vida_maxima) * largura_barra)
             )
-            pygame.draw.rect(
-                tela, (40, 40, 40), (ix, iy - 8, largura_barra, 4)
-            )
-            pygame.draw.rect(
-                tela, (231, 76, 60), (ix, iy - 8, vida_proporcional, 4)
-            )
+

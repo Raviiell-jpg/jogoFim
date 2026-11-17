@@ -42,8 +42,8 @@ class CenaHistoria(QWidget):
         self.fundo.setGeometry(0, 0, self.width(), self.height())
 
         self.texto = QLabel(
-            "A contaminação tomou conta da região, e a água se tornou cada vez "
-            "mais rara. Agora, é preciso encontrar um jeito de sobreviver.",
+            "Não havia mais esperança de encontrar água potável."
+            "",
             self,
         )
         self.texto.setGeometry(100, 620, 1400, 150)

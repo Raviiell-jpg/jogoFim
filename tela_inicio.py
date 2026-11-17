@@ -2,6 +2,7 @@
 import sys
 from pathlib import Path
 
+import pygame
 from PyQt6.QtWidgets import (QApplication, QWidget, QPushButton,QLabel, QGraphicsDropShadowEffect, QMessageBox)
 from PyQt6.QtGui import QFont, QPixmap,  QColor
 from PyQt6.QtCore import Qt
@@ -15,6 +16,12 @@ class Menu(QWidget):
 
     def __init__(self):
         super().__init__()
+
+        pygame.mixer.init()
+        pygame.mixer.music.load(
+            str(PASTA_PROJETO / "musicas" / "noImNotaHuman.mp3")
+        )
+        pygame.mixer.music.play(-1)
 
         self.setWindowTitle("Por uma Gota")
         self.setFixedSize(1600, 900)

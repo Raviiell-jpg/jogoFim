@@ -3,79 +3,155 @@ from pathlib import Path
 
 TILE_SIZE = 32
 INIMIGOS_INICIAIS = [
-    (39, 4), (9, 10), (43, 10), (70, 10),
-    (43, 22), (9, 28), (63, 28), (73, 40), (17, 46),
+    (15, 3), (8, 11), (24, 11), (38, 11),
+    (7, 17), (23, 17), (39, 17),
+    (4, 24), (22, 24), (40, 24),
 ]
 
 DADOS_MAPA = [
     # Topo / Terraço
-    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    "X           M                          H                             M         X",
-    "X                         XXXXXXXXX                     XXXXXXXXX     X",
-    "X                                                                              X",
-    "X  P M             H     SSSS       M             M               M            X",
-    "XXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXX   XXXXXXXXXXXXX",
-    "X                       X                              X                       X",
-    "X       XXXXX           X           XXXXX              X           XXXXX       X",
-    "X                       X                              X                       X",
-    "X               XXXXX   X      H               XXXXX   X   H           XXXXX   X",
-    "X                       X   XXXXXXXX                   X XXXXX                 X",
-    "XXXXX   XXXXXXXXXXXXXXXXX               XXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXX",
-    "X                       X                              X                       X",
-    "X          H            X              M               X              M        X",
-    "X       XXXXXXX         X           XXXXXXX            X           XXXXXXX     X",
-    "X                       X                              X                       X",
-    "X   XXXXX               X      XXXXX           SSSS    X      XXXXX            X",
-    "XXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXX",
-    "X                       X                              X                       X",
-    "X              M        X              H               X              M        X",
-    "X           XXXXX       X           XXXXX              X           XXXXX       X",
-    "X                       X                              X                       X",
-    "X    XXXXX      SSSS    X      XXXXX                   X      XXXXX            X",
-    "XXXXX   XXXXXXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXX",
-    "X                       X                              X                       X",
-    "X         M             X              M               X              M        X",
-    "X      XXXXXX           X           XXXXXX             X           XXXXXX      X",
-    "X                       X                              X                       X",
-    "X              XXXXX    X              XXXXX           X              XXXXX    X",
-    "XXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXX",
-    "X                       X                              X                       X",
-    "X   XXXXX               X      XXXXX        H          X      XXXXX            X",
-    "X               M       X              M   XXXX        X              M        X",
-    "X            XXXXXX     X           XXXXXX             X           XXXXXX      X",
-    "X                       X                              X                       X",
-    "XXXXX   XXXXXXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXX",
-    "X                       X                              X                       X",
-    "X          M            X              M               X              M        X",
-    "X       XXXXX           X           XXXXX              X           XXXXX       X",
-    "X                       X                              X                       X",
-    "X   XXXX       SSSSS    X      XXXX                    X      XXXX             X",
-    "XXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXX",
-    "X                       X                              X                       X",
-    "X               M       X              M               X              M        X",
-    "X            XXXXX      X           XXXXX              X           XXXXX       X",
-    "X                       X                              X                       X",
-    "X    XXXXX              X      XXXXX                   X      XXXXX            X",
-    "XXXXX   XXXXXXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXX",
-    "X                       X                              X                       X",
-    "X          M            X              M               X              M        X",
-    "X       XXXXXX          X           XXXXXX             X           XXXXXX      X",
-    "X                       X                              X                       X",
-    "X              XXXXX    X              XXXXX           X              XXXXX    X",
-    "XXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXX",
-    "X                       X                              X                       X",
-    "X   XXXXX               X      XXXXX                   X      XXXXX            X",
-    "X               M       X              M               X              M        X",
-    "X            XXXXX      X           XXXXX              X           XXXXX       X",
-    "X                       X                              X                       X",
-    "XXXXX   XXXXXXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXXXXXXXXX   XXXXXXXXXXXXXXXXX",
-    "X                       X                              X                       X",
-    "X          M            X              M               X              M        X",
-    "X       XXXXXX  SSSS    X           XXXXXX     H       X           XXXXXX      X",
-    "X                       X                     XXXX     X                       X",
-    "X                       X                              X                       X",
-    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "X       M              H             M           X",
+    "X                                                X",
+    "X  P       H       SSSS       M                  X",
+    "XXXXX     XXXXXXXXX       XXXXXXXXXXXXX    XXXXXXX",
+    "X             X                 X                X",
+    "X    XXXX     X       H         X      XXXX      X",
+    "X             X                 X                X",
+    "X       M     X       M         X                X",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "X                                                X",
+    "X        M             H              M          X",
+    "X      XXXXX         XXXXX          XXXXX        X",
+    "X                                                X",
+    "X   XXXX       SSSS       XXXX                   X",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "X                                                X",
+    "X       M             M                M         X",
+    "X     XXXXX         XXXXX            XXXXX       X",
+    "X                                                X",
+    "X         H                  H                   X",
+    "X       XXXXX              XXXXX                 X",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "X                                                X",
+    "X    M                  M                 M      X",
+    "X  XXXXXX             XXXXXX            XXXXXX   X",
+    "X                                                X",
+    "X        SSSS                 SSSS               X",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "X                                                X",
+    "X         M                H              M      X",
+    "X       XXXXX           XXXXX          XXXXX     X",
+    "X                                                X",
+    "X    XXXX                   XXXX                 X",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "X                                                X",
+    "X       M             M                M         X",
+    "X     XXXXX         XXXXX            XXXXX       X",
+    "X                                                X",
+    "X             H                                  X",
+    "X           XXXXX                                X",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "X                                                X",
+    "X       M             M                M         X",
+    "X     XXXXX         XXXXX            XXXXX       X",
+    "X                                                X",
+    "X   XXXX       SSSSS        XXXX                 X",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "X                                                X",
+    "X          M             H              M        X",
+    "X        XXXXX         XXXXX          XXXXX      X",
+    "X                                                X",
+    "X             SSSS                               X",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "X                                                X",
+    "X       M             M                M         X",
+    "X     XXXXX         XXXXX            XXXXX       X",
+    "X                                                X",
+    "X             H                                  X",
+    "X           XXXXX                                X",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "X                                                X",
+    "X        M             M               M         X",
+    "X      XXXXX         XXXXX           XXXXX       X",
+    "X                                                X",
+    "X    XXXX        SSSS       XXXX                 X",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+
+    "X                                                X",
+    "X       M             H                M         X",
+    "X     XXXXX         XXXXX            XXXXX       X",
+    "X                                                X",
+    "X                                                X",
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
 ]
+
+
+def _adicionar_escadas(dados):
+    grade = [list(linha) for linha in dados]
+    largura = len(grade[0])
+    pisos = [
+        indice
+        for indice, linha in enumerate(grade)
+        if all(caractere == "X" for caractere in linha)
+    ]
+    if len(pisos) < 3:
+        return ["".join(linha) for linha in grade]
+
+    coluna_minima = largura - 8
+    coluna_maxima = largura - 2
+    coluna_atual = coluna_minima + 1
+    direcao = 1
+    pisos_set = set(pisos)
+
+    def abrir_piso(linha, coluna):
+        for coluna_abertura in range(
+            max(1, coluna - 1),
+            min(largura - 1, coluna + 2),
+        ):
+            if grade[linha][coluna_abertura] == "X":
+                grade[linha][coluna_abertura] = " "
+
+    abrir_piso(pisos[1], coluna_atual)
+
+    for linha in range(pisos[1] + 1, pisos[-1]):
+        if linha not in pisos_set:
+            for coluna in range(coluna_minima, coluna_maxima + 1):
+                if grade[linha][coluna] == "X":
+                    grade[linha][coluna] = " "
+
+    for piso_superior, piso_inferior in zip(pisos[1:-1], pisos[2:]):
+        linhas_escada = range(piso_superior + 1, piso_inferior)
+        for indice, linha in enumerate(linhas_escada):
+            if not coluna_minima <= coluna_atual <= coluna_maxima:
+                raise ValueError("A escada excedeu a faixa disponível no mapa.")
+            if grade[linha][coluna_atual] != " ":
+                raise ValueError(
+                    f"Não foi possível criar a escada na linha {linha}."
+                )
+            grade[linha][coluna_atual] = "X"
+            if indice < len(linhas_escada) - 1:
+                coluna_atual += direcao
+
+        if piso_inferior != pisos[-1]:
+            abrir_piso(piso_inferior, coluna_atual)
+            coluna_atual += direcao
+        direcao *= -1
+
+    return ["".join(linha) for linha in grade]
+
+
+DADOS_MAPA = _adicionar_escadas(DADOS_MAPA)
+
 
 class Mapa:
     def __init__(self):
@@ -93,7 +169,10 @@ class Mapa:
             self.textura_cura = pygame.transform.scale(
                 self.textura_cura, (self.tile_size, self.tile_size)
             )
-        self.largura = len(DADOS_MAPA[0]) * self.tile_size
+        largura_grade = len(DADOS_MAPA[0])
+        if any(len(linha) != largura_grade for linha in DADOS_MAPA):
+            raise ValueError("Todas as linhas do mapa devem ter a mesma largura.")
+        self.largura = largura_grade * self.tile_size
         self.altura = len(DADOS_MAPA) * self.tile_size
 
         self.blocos = []
@@ -119,8 +198,11 @@ class Mapa:
                     self.blocos.append(pygame.Rect(pos_x, pos_y, self.tile_size, self.tile_size))
                 elif caractere == "P":
                     self.pos_inicial_jogador = (pos_x, pos_y)
+
                 elif caractere == "M":
-                    self.moedas.append(pygame.Rect(pos_x + 8, pos_y + 8, 16, 16))
+                    self.moedas.append(
+                        pygame.Rect(pos_x + 8, pos_y + 8, 16, 16)
+                    )
                 elif caractere == "S":
                     self.espinhos.append(pygame.Rect(pos_x, pos_y + 16, self.tile_size, 16))
                 elif caractere == "H":
