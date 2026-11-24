@@ -6,9 +6,9 @@ from PyQt6.QtGui import QFont, QPixmap
 from PyQt6.QtWidgets import QApplication, QLabel, QMessageBox, QPushButton, QWidget
 
 if __package__:
-    from .navegacao import abrir_pagina, mostrar_janela
+    from .navegacao import abrir_pagina, mostrar_janela, registrar_fonte_qt
 else:
-    from navegacao import abrir_pagina, mostrar_janela
+    from navegacao import abrir_pagina, mostrar_janela, registrar_fonte_qt
 
 
 PASTA_PROJETO = Path(__file__).resolve().parents[1]
@@ -17,6 +17,7 @@ PASTA_PROJETO = Path(__file__).resolve().parents[1]
 class CenaHistoria(QWidget):
     def __init__(self):
         super().__init__()
+        registrar_fonte_qt()
         self.setWindowTitle("Por uma Gota - História")
         self.setFixedSize(1600, 900)
 
@@ -54,7 +55,7 @@ class CenaHistoria(QWidget):
             "color: white; background-color: rgba(0, 0, 0, 170); padding: 12px;"
         )
 
-        self.continuar = QPushButton("INICIAR JOGO", self)
+        self.continuar = QPushButton("Continuar", self)
         self.continuar.setGeometry(625, 800, 350, 65)
         self.continuar.setFont(QFont("Press Start 2P", 16, QFont.Weight.Bold))
         self.continuar.setStyleSheet(
@@ -72,11 +73,36 @@ class CenaHistoria(QWidget):
             """
         )
         self.continuar.clicked.connect(self.iniciar_jogo)
+
+        # Botão Pular História (canto direito inferior)
+        self.btn_pular = QPushButton("PULAR", self)
+        self.btn_pular.setGeometry(1340, 800, 210, 65)
+        self.btn_pular.setFont(QFont("Press Start 2P", 14, QFont.Weight.Bold))
+        self.btn_pular.setStyleSheet(
+            """
+            QPushButton {
+                background-color: lightblue;
+                color: white;
+                border: 3px solid #2874A6;
+                padding: 8px;
+            }
+            QPushButton:hover {
+                background-color: #5DADE2;
+                color: white;
+            }
+            """
+        )
+        self.btn_pular.clicked.connect(self.pular_historia)
+
         self.fundo.lower()
 
     def iniciar_jogo(self):
         caminho_jogo = PASTA_PROJETO / "historia" / "cena3.py"
         abrir_pagina(self, caminho_jogo, self.continuar)
+
+    def pular_historia(self):
+        caminho_jogo = PASTA_PROJETO / "main.py"
+        abrir_pagina(self, caminho_jogo, self.btn_pular)
 
 
 if __name__ == "__main__":

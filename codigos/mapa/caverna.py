@@ -31,6 +31,17 @@ class Mapa:
         self.textura_mapa.fill(COR_FUNDO)
         self._desenhar_rochas()
         self.textura_cura = self._carregar_textura_cura()
+        pasta_projeto = Path(__file__).resolve().parents[2]
+        pasta_cenario = pasta_projeto / "cenario"
+        self.sprites_acido = []
+        for i in range(1, 4):
+            caminho_acido = pasta_cenario / f"armadilha_acido_{i}.png"
+            if caminho_acido.is_file():
+                try:
+                    img_ac = pygame.image.load(str(caminho_acido)).convert_alpha()
+                    self.sprites_acido.append(pygame.transform.scale(img_ac, (self.tile_size, self.tile_size)))
+                except Exception as e:
+                    print(f"Aviso ao carregar armadilha_acido_{i}.png: {e}")
 
     def _processar_dados(self):
         for linha_idx, linha in enumerate(DADOS_CAVERNA):
@@ -45,9 +56,7 @@ class Mapa:
                 elif caractere == "P":
                     self.pos_inicial_jogador = (pos_x, pos_y)
                 elif caractere == "M":
-                    self.moedas.append(
-                        pygame.Rect(pos_x + 8, pos_y + 8, 16, 16)
-                    )
+                    pass  # Moedas removidas
                 elif caractere == "S":
                     self.espinhos.append(
                         pygame.Rect(pos_x, pos_y + 16, self.tile_size, 16)
@@ -190,18 +199,10 @@ class Mapa:
                 -self.tile_size < ex < largura_tela
                 and -self.tile_size < ey < altura_tela
             ):
-                base_y = ey + espinho.height
-                for centro, meia_largura, altura in (
-                    (ex + 8, 8, 11),
-                    (ex + 24, 9, 15),
-                ):
-                    pontos = [
-                        (centro - meia_largura, base_y),
-                        (centro, base_y - altura),
-                        (centro + meia_largura, base_y),
-                    ]
-                    pygame.draw.polygon(tela, (34, 83, 91), pontos)
-                    pygame.draw.polygon(tela, (74, 164, 157), pontos, 2)
+                if self.sprites_acido:
+                    idx_frame = (pygame.time.get_ticks() // 150) % len(self.sprites_acido)
+                    tela.blit(self.sprites_acido[idx_frame], (ex, ey - 16))
+                # Triângulos não são desenhados (invisíveis / "sem dar pra ver")
 
         for kit in self.kits_medicos:
             x_centro = kit.centerx - camera_x
@@ -228,17 +229,3 @@ class Mapa:
                         (45, 142, 126),
                         (visual_cura.x + 5, visual_cura.y + 13, 22, 6),
                     )
-
-        for moeda in self.moedas:
-            cx = moeda.centerx - camera_x
-            cy = moeda.centery - camera_y
-            if -16 < cx < largura_tela + 16 and -16 < cy < altura_tela + 16:
-                pygame.draw.circle(tela, (27, 55, 67), (cx, cy), 11)
-                cristal = [
-                    (cx, cy - 9),
-                    (cx + 6, cy),
-                    (cx, cy + 9),
-                    (cx - 6, cy),
-                ]
-                pygame.draw.polygon(tela, (77, 220, 196), cristal)
-                pygame.draw.polygon(tela, (178, 255, 229), cristal, 1)

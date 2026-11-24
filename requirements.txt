@@ -1,6 +1,4 @@
-PyQt6
-pygame
-pymysql
-pathlib
-subprocess
-sys
+# Dependências do jogo 'Por uma Gota: Um Sertão Radioativo'
+pygame-ce>=2.5.0
+PyQt6>=6.5.0
+Pillow>=10.0.0

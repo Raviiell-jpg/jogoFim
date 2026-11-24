@@ -1,0 +1,13 @@
+comandos = [
+            ("CTRL+F12", "Atalho exclusivo: Abrir / Fechar Painel e Funções de GM (no menu principal e durante o jogo)"),
+            ("F2", "Modo Deus (God Mode): Invencibilidade total e vida inesgotável"),
+            ("F3", "Cura Total: Restaura instantaneamente 100% da sede/vida"),
+            ("F4", "Insta-Kill: Elimina todos os inimigos da fase"),
+            ("F5", "Teleporte: Ir para o Início / Terraço do Prédio"),
+            ("F6", "Teleporte: Ir para a Chegada / Zona de Fuga no Térreo"),
+            ("F7", "Coleta Total: Coleta todos os kits de cura do mapa instantaneamente"),
+            ("F8", "Depurador de Hitbox: Desenha as caixas de colisão de todos os elementos"),
+            ("F9", "Gerar Inimigo: Spawna um inimigo na posição atual"),
+            ("F10", "Super Velocidade: Alterna velocidade padrão ou turbo 2.5x"),
+            ("Clique Direito", "Teleporte Livre: Clicar com botão direito do mouse teletransporta para o local"),
+        ]
