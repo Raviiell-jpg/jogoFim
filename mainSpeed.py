@@ -451,15 +451,14 @@ def avancar_proxima_fase():
             )
             recorde_pessoal = banco.obter_recorde_pessoal(usuario_id)
         registrar_acao_gm("Avançar Fase", "Chefe superado -> Fuga Bem-Sucedida (Vitória)!")
-        if not modo_speedrun:
-            dados_tela_final = {
-                "tempo_ms": tempo_final_ms,
-                "inimigos_derrotados": inimigos_derrotados,
-                "total_inimigos": total_inimigos_fase,
-                "novo_recorde": novo_recorde,
-                "usou_gm": usou_gm,
-            }
-            executando = False
+        dados_tela_final = {
+            "tempo_ms": tempo_final_ms,
+            "inimigos_derrotados": inimigos_derrotados,
+            "total_inimigos": total_inimigos_fase,
+            "novo_recorde": novo_recorde,
+            "usou_gm": usou_gm,
+        }
+        executando = False
 
 def alternar_fase():
     global fase_atual, mapa, jogador_rect, vel_x, vel_y, vel_recuo_x, inimigos, total_inimigos_fase
@@ -1116,15 +1115,14 @@ while executando:
                     )
                     recorde_pessoal = banco.obter_recorde_pessoal(usuario_id)
 
-                if not modo_speedrun:
-                    dados_tela_final = {
-                        "tempo_ms": tempo_final_ms,
-                        "inimigos_derrotados": inimigos_derrotados,
-                        "total_inimigos": total_inimigos_fase,
-                        "novo_recorde": novo_recorde,
-                        "usou_gm": usou_gm,
-                    }
-                    executando = False
+                dados_tela_final = {
+                    "tempo_ms": tempo_final_ms,
+                    "inimigos_derrotados": inimigos_derrotados,
+                    "total_inimigos": total_inimigos_fase,
+                    "novo_recorde": novo_recorde,
+                    "usou_gm": usou_gm,
+                }
+                executando = False
 
     # Toast Timer
     if tempo_toast_gm > 0:
@@ -1252,6 +1250,9 @@ while executando:
     cor_fase = (255, 215, 0) if fase_atual == "chefe" else (160, 230, 180)
     txt_f = fonte_gm_dica.render(badge_fase, True, cor_fase)
     tela.blit(txt_f, (40, 102))
+    
+    if not saude.esta_vivo():
+            saude.desenhar_game_over(tela, LARGURA_TELA, ALTURA_TELA)
 
     # Barra de Vida do Chefe
     if fase_atual == "chefe" and inimigos:

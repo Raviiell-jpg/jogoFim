@@ -1238,6 +1238,8 @@ while executando:
     # 9. HUD SUPERIOR, ESTATÍSTICAS E PAINÉIS OVERLAY
     # --------------------------------------------------------------------
     # Barra de Saúde/Sede
+    
+
     saude.desenhar_hud(tela)
 
     # Rótulo de Usuário Conectado
@@ -1559,6 +1561,9 @@ while executando:
                 f"OFICIAL | Seu Recorde: {rec_txt}", True, (255, 215, 0)
             )
         tela.blit(txt_status_sr, (timer_x + 16, timer_y + 72))
+
+    if not saude.esta_vivo():
+        saude.desenhar_game_over(tela, LARGURA_TELA, ALTURA_TELA)
 
     pygame.display.flip()
     relogio.tick(int(60 * multiplicador_jogo))
