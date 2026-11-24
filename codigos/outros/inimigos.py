@@ -322,6 +322,105 @@ class Inimigo:
 
 
 # Parte do sapo/boss final
+class ChefeSapo2(Inimigo):
+    """
+    Chefe Sapo2 Mutante Gigante:
+    - Movimentação com animação cíclica dos quadros 1 -> 2 -> 3
+    - Ataque 1 (Investida): Pulo horizontal veloz acertando com os chifres (chefe_ataque1 a 4)
+    - Ataque 2 (Língua): Disparo de língua comprida com hitbox na ponta da língua (chefe_ataque2-1 a 2-4)
+    - IA que alterna taticamente entre os dois ataques
+    - Escala colossal proporcional à arena
+    """
+    DURACAO_QUADRO_MS = 180
+    DURACAO_INVESTIDA = 36
+    DURACAO_LINGUA = 32
+    ESCALA_SPRITE = 2.4
+
+    def __init__(
+        self,
+        x,
+        y,
+        largura=172,
+        altura=184,
+        vida=500,
+        velocidade=3,
+        quadros_movimento=None,
+        quadros_investida=None,
+        quadros_lingua=None,
+    ):
+        super().__init__(
+            x, y,
+            largura=largura,
+            altura=altura,
+            vida=vida,
+            velocidade=velocidade,
+            quadros=quadros_movimento,
+        )
+        self.alcance_visao = 2500
+        self.DISTANCIA_LONGE = 650
+        self.alcance_lingua_atual = 350
+        self.forca_recuo_x = 2.0
+        self.forca_recuo_y = -2.0
+
+        # Fator de escala visual para os sprites de ataque acompanharem o corpo do chefe
+        escala = (altura * self.ESCALA_SPRITE) / 540.0
+
+        # Ataque 1: Investida com pulo horizontal (chefe_ataque1 a 4)
+        self.quadros_investida = []
+        if quadros_investida:
+            for q in quadros_investida:
+                w_sc = round(q.get_width() * escala)
+                h_sc = round(q.get_height() * escala)
+                self.quadros_investida.append(pygame.transform.scale(q, (w_sc, h_sc)))
+        self.quadros_investida_esquerda = [
+            pygame.transform.flip(q, True, False) for q in self.quadros_investida
+        ]
+
+        # Ataque 2: Língua comprida (chefe_ataque2-1 a 2-4)
+        self.quadros_lingua = []
+        if quadros_lingua:
+            for q in quadros_lingua:
+                w_sc = round(q.get_width() * escala)
+                h_sc = round(q.get_height() * escala)
+                self.quadros_lingua.append(pygame.transform.scale(q, (w_sc, h_sc)))
+        self.quadros_lingua_esquerda = [
+            pygame.transform.flip(q, True, False) for q in self.quadros_lingua
+        ]
+
+        # Fatias para esticamento dinâmico da língua a longas distâncias
+        self.lingua_corpo = None
+        self.lingua_haste = None
+        self.lingua_ponta = None
+        self._surf_lingua_cache = None
+        self._surf_lingua_cache_esq = None
+        if self.quadros_lingua and len(self.quadros_lingua) > 1:
+            q2 = self.quadros_lingua[1]
+            h = q2.get_height()
+            w = q2.get_width()
+            c_x = min(356, int(w * 0.62))
+            h_w = min(77, int(w * 0.14))
+            p_w = w - c_x - h_w
+            if c_x > 0 and h_w > 0 and p_w > 0:
+                self.lingua_corpo = q2.subsurface((0, 0, c_x, h))
+                self.lingua_haste = q2.subsurface((c_x, 0, h_w, h))
+                self.lingua_ponta = q2.subsurface((c_x + h_w, 0, p_w, h))
+
+        self.tipo_ataque_atual = "investida"
+        self.ultimo_ataque_usado = "lingua"
+        self.cooldown_ataque = 40
+        self.pulo_investida_executado = False
+        self.golpe_processado = False
+
+    # Reutiliza a IA especializada mantendo ChefeSapo2 como subclasse direta de Inimigo.
+    def atualizar(self, blocos, jogador_rect=None, hitbox_escudo=None):
+        ChefeSapo.atualizar(self, blocos, jogador_rect, hitbox_escudo)
+
+    def desenhar(self, tela, camera_x, camera_y, largura_tela, altura_tela):
+        ChefeSapo.desenhar(
+            self, tela, camera_x, camera_y, largura_tela, altura_tela
+        )
+
+
 class ChefeSapo(Inimigo):
     """
     Chefe Sapo Mutante Gigante:
@@ -340,10 +439,10 @@ class ChefeSapo(Inimigo):
         self,
         x,
         y,
-        largura=162,
-        altura=174,
-        vida=250,
-        velocidade=2,
+        largura=168,
+        altura=180,
+        vida=500,
+        velocidade=3,
         quadros_movimento=None,
         quadros_investida=None,
         quadros_lingua=None,

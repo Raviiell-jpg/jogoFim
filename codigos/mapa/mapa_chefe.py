@@ -172,6 +172,7 @@ class MapaChefe:
         self.bloco_texturas = {}
         self.pos_inicial_jogador = (96, 25 * self.tile_size)
         self.zona_saida = pygame.Rect(55 * self.tile_size, 24 * self.tile_size, self.tile_size * 3, self.tile_size * 3)
+        self.saida_desbloqueada = False
 
         # Sprites das portas
         caminho_fechada = pasta_cenario / "porta_fechada.png"
@@ -221,6 +222,20 @@ class MapaChefe:
             self.sprite_porta_aberta = self.sprite_porta_direita
 
         self._processar_dados()
+        self.sprite_saida = None
+        if self.sprite_porta_esquerda is not None:
+            altura_saida = max(1, self.zona_saida.height)
+            largura_saida = max(
+                1,
+                round(
+                    altura_saida
+                    * self.sprite_porta_esquerda.get_width()
+                    / self.sprite_porta_esquerda.get_height()
+                ),
+            )
+            self.sprite_saida = pygame.transform.scale(
+                self.sprite_porta_esquerda, (largura_saida, altura_saida)
+            )
 
         # Superfície pré-renderizada do mapa
         self.textura_mapa = pygame.Surface((self.largura, self.altura))
@@ -465,19 +480,37 @@ class MapaChefe:
                     pygame.draw.rect(tela, (45, 180, 100), (rect_visual.x + 5, rect_visual.y + 13, 22, 6))
 
         # 7. Zona de saída / Nascente de Água
-        zx = self.zona_saida.x - camera_x
-        zy = self.zona_saida.y - camera_y
-        if -200 < zx < largura_tela + 200 and -200 < zy < altura_tela + 200:
-            surf_saida = pygame.Surface((self.zona_saida.width, self.zona_saida.height), pygame.SRCALPHA)
-            surf_saida.fill((30, 160, 255, 80))
-            tela.blit(surf_saida, (zx, zy))
-            pygame.draw.rect(tela, (50, 200, 255), (zx, zy, self.zona_saida.width, self.zona_saida.height), 3, border_radius=6)
-            try:
-                fonte = pygame.font.SysFont("consolas", 12, bold=True)
-                txt = fonte.render("NASCENTE DE AGUA LIMPA [SAIDA]", True, (200, 240, 255))
-                tela.blit(txt, txt.get_rect(center=(zx + self.zona_saida.width // 2, zy + 16)))
-            except Exception:
-                pass
+        if self.saida_desbloqueada:
+            zx = self.zona_saida.x - camera_x
+            zy = self.zona_saida.y - camera_y
+            if -200 < zx < largura_tela + 200 and -200 < zy < altura_tela + 200:
+                centro_x = zx + self.zona_saida.width // 2
+                if self.sprite_saida is not None:
+                    porta_rect = self.sprite_saida.get_rect(
+                        midbottom=(
+                            centro_x,
+                            zy + self.zona_saida.height,
+                        )
+                    )
+                    tela.blit(self.sprite_saida, porta_rect)
+                else:
+                    porta_rect = pygame.Rect(
+                        zx + self.zona_saida.width // 4,
+                        zy,
+                        self.zona_saida.width // 2,
+                        self.zona_saida.height,
+                    )
+                    pygame.draw.rect(tela, (75, 58, 45), porta_rect)
+                    pygame.draw.rect(
+                        tela, (25, 34, 31), porta_rect.inflate(-10, -8)
+                    )
+                    pygame.draw.line(
+                        tela,
+                        (100, 82, 57),
+                        (centro_x, porta_rect.top + 6),
+                        (centro_x, porta_rect.bottom - 6),
+                        3,
+                    )
 
         # 8. Prompt de interação das portas
         if jogador_rect:

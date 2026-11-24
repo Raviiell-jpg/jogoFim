@@ -36,6 +36,7 @@ from codigos.mapa.mapa_chefe import MapaChefe
 from codigos.outros.combate import SistemaCombate
 from codigos.outros.inimigos import Inimigo, ChefeSapo
 from codigos.outros.monstros import (
+    GRADE_ATAQUE_MONSTROS,
     carregar_imagens_monstros,
     separar_spritesheet,
 )
@@ -193,7 +194,16 @@ try:
         if nome in imgs_monstros:
             q_norm = separar_spritesheet(imgs_monstros[nome], lin, col)
             atk_key = nome + "Ataque"
-            q_atk = separar_spritesheet(imgs_monstros[atk_key], lin, col) if atk_key in imgs_monstros else None
+            linhas_ataque, colunas_ataque = GRADE_ATAQUE_MONSTROS.get(
+                nome, (lin, col)
+            )
+            q_atk = (
+                separar_spritesheet(
+                    imgs_monstros[atk_key], linhas_ataque, colunas_ataque
+                )
+                if atk_key in imgs_monstros
+                else None
+            )
             monstros_quadros[nome] = (q_norm, q_atk)
     # Chefe Sapo Mutante:
     # 1. Movimentação (imagens 1, 2 e 3 nessa ordem)
@@ -1069,6 +1079,8 @@ while executando:
         qtd_antes = len(inimigos)
         inimigos = [inimigo for inimigo in inimigos if inimigo.esta_vivo]
         inimigos_derrotados += (qtd_antes - len(inimigos))
+        if fase_atual == "chefe":
+            mapa.saida_desbloqueada = not inimigos
 
         # Espinhos
         if not god_mode:
@@ -1086,7 +1098,12 @@ while executando:
                     mapa.kits_medicos.remove(kit)
 
         # Saída / Transição de Mapa ou Vitória Final
-        if mapa.zona_saida and jogador_rect.colliderect(mapa.zona_saida) and not corrida_finalizada:
+        if (
+            mapa.zona_saida
+            and jogador_rect.colliderect(mapa.zona_saida)
+            and (fase_atual != "chefe" or mapa.saida_desbloqueada)
+            and not corrida_finalizada
+        ):
             if fase_atual == "predio":
                 # Transição do Prédio para a Caverna do Chefe!
                 fase_atual = "chefe"

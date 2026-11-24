@@ -34,8 +34,9 @@ from banco_dados import BancoDados
 from codigos.mapa.mapa_prototipo import Mapa
 from codigos.mapa.mapa_chefeSp import MapaChefe as MapaChefeSp
 from codigos.outros.combate import SistemaCombate
-from codigos.outros.inimigos import Inimigo, ChefeSapo
+from codigos.outros.inimigos import Inimigo, ChefeSapo2
 from codigos.outros.monstros import (
+    GRADE_ATAQUE_MONSTROS,
     carregar_imagens_monstros,
     separar_spritesheet,
 )
@@ -193,7 +194,16 @@ try:
         if nome in imgs_monstros:
             q_norm = separar_spritesheet(imgs_monstros[nome], lin, col)
             atk_key = nome + "Ataque"
-            q_atk = separar_spritesheet(imgs_monstros[atk_key], lin, col) if atk_key in imgs_monstros else None
+            linhas_ataque, colunas_ataque = GRADE_ATAQUE_MONSTROS.get(
+                nome, (lin, col)
+            )
+            q_atk = (
+                separar_spritesheet(
+                    imgs_monstros[atk_key], linhas_ataque, colunas_ataque
+                )
+                if atk_key in imgs_monstros
+                else None
+            )
             monstros_quadros[nome] = (q_norm, q_atk)
     # Chefe Sapo Mutante:
     # 1. Movimentação (imagens 1, 2 e 3 nessa ordem)
@@ -234,6 +244,7 @@ fase_atual = "predio"  # "predio" ou "chefe"
 mapa = Mapa()
 saude = SistemaSaude(vida_maxima=100)
 combate = SistemaCombate()
+GOLPES_PARA_DERROTAR_CHEFE = 12
 
 total_inimigos_fase = len(mapa.inimigos_iniciais)
 
@@ -251,15 +262,15 @@ def criar_inimigos():
 
 def criar_inimigos_chefe():
     lista = []
-    largura_boss = 162
-    altura_boss = 174
+    largura_boss = 172
+    altura_boss = 184
     for x, y in mapa.inimigos_iniciais:
         pos_y = min(y, 21 * getattr(mapa, "tile_size", 32))
-        boss = ChefeSapo(
+        boss = ChefeSapo2(
             x, pos_y,
             largura=largura_boss,
             altura=altura_boss,
-            vida=250,
+            vida=combate.dano_ataque * GOLPES_PARA_DERROTAR_CHEFE,
             velocidade=2,
             quadros_movimento=quadros_chefe_andando,
             quadros_investida=quadros_chefe_investida,
@@ -1011,7 +1022,7 @@ while executando:
                         )
                         tentando_bloquear = combate.defendendo and virado_para_inimigo and combate.pode_defender()
 
-                        if isinstance(inimigo, ChefeSapo):
+                        if isinstance(inimigo, ChefeSapo2):
                             if tentando_bloquear:
                                 bloqueou = combate.registrar_bloqueio_chefe()
                                 if bloqueou:
@@ -1068,6 +1079,8 @@ while executando:
         qtd_antes = len(inimigos)
         inimigos = [inimigo for inimigo in inimigos if inimigo.esta_vivo]
         inimigos_derrotados += (qtd_antes - len(inimigos))
+        if fase_atual == "chefe":
+            mapa.saida_desbloqueada = not inimigos
 
         # Espinhos
         if not god_mode:
@@ -1085,7 +1098,12 @@ while executando:
                     mapa.kits_medicos.remove(kit)
 
         # Saída / Transição de Mapa ou Vitória Final
-        if mapa.zona_saida and jogador_rect.colliderect(mapa.zona_saida) and not corrida_finalizada:
+        if (
+            mapa.zona_saida
+            and jogador_rect.colliderect(mapa.zona_saida)
+            and (fase_atual != "chefe" or mapa.saida_desbloqueada)
+            and not corrida_finalizada
+        ):
             if fase_atual == "predio":
                 # Transição do Prédio para a Caverna do Chefe!
                 fase_atual = "chefe"
@@ -1265,12 +1283,16 @@ while executando:
         pygame.draw.rect(tela, (18, 12, 18), (bx - 2, by - 2, largura_barra_boss + 4, altura_barra_boss + 4), border_radius=4)
         pygame.draw.rect(tela, (255, 50, 50), (bx - 2, by - 2, largura_barra_boss + 4, altura_barra_boss + 4), 2, border_radius=4)
 
-        pct_boss = max(0.0, min(1.0, boss.vida / 250.0))
+        pct_boss = max(0.0, min(1.0, boss.vida / boss.vida_maxima))
         largura_vida_boss = int(largura_barra_boss * pct_boss)
         if largura_vida_boss > 0:
             pygame.draw.rect(tela, (230, 30, 45), (bx, by, largura_vida_boss, altura_barra_boss), border_radius=3)
 
-        txt_boss = fonte_gm_dica.render(f"SAPO MUTANTE ({max(0, boss.vida)}/250 HP)", True, (255, 240, 240))
+        txt_boss = fonte_gm_dica.render(
+            f"SAPO MUTANTE ({max(0, boss.vida)}/{boss.vida_maxima} HP)",
+            True,
+            (255, 240, 240),
+        )
         tela.blit(txt_boss, txt_boss.get_rect(center=(LARGURA_TELA // 2, by + altura_barra_boss // 2)))
 
 
