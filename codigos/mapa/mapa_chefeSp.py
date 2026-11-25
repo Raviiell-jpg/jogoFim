@@ -379,6 +379,10 @@ class MapaChefe:
     def colisoes_com_portas(self):
         return self.obter_blocos_colisao()
 
+    def atualizar_saida(self, chefe_derrotado=False):
+        """Mantem a porta final fechada ate o chefe final ser derrotado."""
+        self.saida_desbloqueada = bool(chefe_derrotado)
+
     def esta_na_escada(self, rect_jogador):
         for escada in self.escadas:
             if escada.colliderect(rect_jogador):

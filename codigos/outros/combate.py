@@ -177,23 +177,7 @@ class SistemaCombate:
 
     def desenhar(self, tela, camera_x, camera_y, jogador_rect):
         """Renderiza visualmente o efeito de ataque, escudo dinâmico e aviso de guarda quebrada."""
-        # 1. Efeito visual do corte da espada
-        if self.hitbox_ataque is not None:
-            hx = self.hitbox_ataque.x - camera_x
-            hy = self.hitbox_ataque.y - camera_y
-
-            superficie_ataque = pygame.Surface(
-                (self.hitbox_ataque.width, self.hitbox_ataque.height), pygame.SRCALPHA
-            )
-            superficie_ataque.fill((255, 140, 0, 190))  # Laranja brilhante
-            tela.blit(superficie_ataque, (hx, hy))
-            pygame.draw.rect(
-                tela, (255, 230, 80),
-                (hx, hy, self.hitbox_ataque.width, self.hitbox_ataque.height),
-                2, border_radius=3
-            )
-
-        # 2. Efeito visual do Escudo com alerta de carga
+        # Efeito visual do Escudo com alerta de carga
         if self.defendendo and self.hitbox_escudo is not None:
             escudo_rect = self.hitbox_escudo.move(-camera_x, -camera_y)
 

@@ -4,7 +4,7 @@ import pygame
 # Dados dos inimigos relacionados a duração de cada frame/sprite, vida, dano, tamanho, onde está localizado também cada arquivo de cada monstro(tatu, rato, lagartixa)
 class Inimigo:
     DURACAO_QUADRO_MS = 120
-    DURACAO_ATAQUE = 12
+    DURACAO_ATAQUE = 30
     ESCALA_SPRITE = 2.4
 
     def __init__(
@@ -13,7 +13,7 @@ class Inimigo:
         y,
         largura=26,
         altura=30,
-        vida=70,
+        vida=140,
         velocidade=2,
         imagem=None,
         quadros=None,
@@ -36,17 +36,25 @@ class Inimigo:
             )
         if imagens:
             altura_sprite = round(altura * escala)
-            largura_sprite = max(
-                round(largura * escala),
-                round(
+            largura_minima = round(largura * escala)
+
+            def _escalar_quadro(quadro, aplicar_largura_minima=True):
+                largura_prop = round(
                     altura_sprite
-                    * imagens[0].get_width()
-                    / imagens[0].get_height()
-                ),
-            )
-            tamanho_sprite = (largura_sprite, altura_sprite)
+                    * quadro.get_width()
+                    / max(1, quadro.get_height())
+                )
+                largura_final = (
+                    max(largura_minima, largura_prop)
+                    if aplicar_largura_minima
+                    else max(1, largura_prop)
+                )
+                return pygame.transform.scale(
+                    quadro, (largura_final, altura_sprite)
+                )
+
             self.quadros = [
-                pygame.transform.scale(quadro, tamanho_sprite)
+                _escalar_quadro(quadro, aplicar_largura_minima=True)
                 for quadro in imagens
             ]
             self.quadros_esquerda = [
@@ -54,7 +62,7 @@ class Inimigo:
                 for quadro in self.quadros
             ]
             self.quadros_ataque = [
-                pygame.transform.scale(quadro, tamanho_sprite)
+                _escalar_quadro(quadro, aplicar_largura_minima=False)
                 for quadro in (quadros_ataque or [])
             ]
             self.quadros_ataque_esquerda = [
@@ -318,13 +326,28 @@ class Inimigo:
             vida_proporcional = max(
                 0, int((self.vida / self.vida_maxima) * largura_barra)
             )
+            y_barra = iy + self.rect.height + 4
+            pygame.draw.rect(
+                tela,
+                (40, 40, 40),
+                (ix, y_barra, largura_barra, 8),
+            )
+            pygame.draw.rect(
+                tela,
+                (231, 76, 60),
+                (ix + 2, y_barra + 2, max(0, vida_proporcional - 4), 4),
+            )
+            pygame.draw.rect(
+                tela,
+                (0, 0, 0),
+                (ix, y_barra, largura_barra, 8),
+                2,
+            )
 
 
-
-# Parte do sapo/boss final
 class ChefeSapo2(Inimigo):
     """
-    Chefe Sapo2 Mutante Gigante:
+    Chefe Sapo Mutante Gigante:
     - Movimentação com animação cíclica dos quadros 1 -> 2 -> 3
     - Ataque 1 (Investida): Pulo horizontal veloz acertando com os chifres (chefe_ataque1 a 4)
     - Ataque 2 (Língua): Disparo de língua comprida com hitbox na ponta da língua (chefe_ataque2-1 a 2-4)
@@ -340,10 +363,10 @@ class ChefeSapo2(Inimigo):
         self,
         x,
         y,
-        largura=172,
-        altura=184,
-        vida=500,
-        velocidade=3,
+        largura=162,
+        altura=174,
+        vida=250,
+        velocidade=2,
         quadros_movimento=None,
         quadros_investida=None,
         quadros_lingua=None,
@@ -356,7 +379,7 @@ class ChefeSapo2(Inimigo):
             velocidade=velocidade,
             quadros=quadros_movimento,
         )
-        self.alcance_visao = 2500
+        self.alcance_visao = 2000
         self.DISTANCIA_LONGE = 650
         self.alcance_lingua_atual = 350
         self.forca_recuo_x = 2.0
@@ -387,40 +410,7 @@ class ChefeSapo2(Inimigo):
             pygame.transform.flip(q, True, False) for q in self.quadros_lingua
         ]
 
-        # Fatias para esticamento dinâmico da língua a longas distâncias
-        self.lingua_corpo = None
-        self.lingua_haste = None
-        self.lingua_ponta = None
-        self._surf_lingua_cache = None
-        self._surf_lingua_cache_esq = None
-        if self.quadros_lingua and len(self.quadros_lingua) > 1:
-            q2 = self.quadros_lingua[1]
-            h = q2.get_height()
-            w = q2.get_width()
-            c_x = min(356, int(w * 0.62))
-            h_w = min(77, int(w * 0.14))
-            p_w = w - c_x - h_w
-            if c_x > 0 and h_w > 0 and p_w > 0:
-                self.lingua_corpo = q2.subsurface((0, 0, c_x, h))
-                self.lingua_haste = q2.subsurface((c_x, 0, h_w, h))
-                self.lingua_ponta = q2.subsurface((c_x + h_w, 0, p_w, h))
-
-        self.tipo_ataque_atual = "investida"
-        self.ultimo_ataque_usado = "lingua"
-        self.cooldown_ataque = 40
-        self.pulo_investida_executado = False
-        self.golpe_processado = False
-
-    # Reutiliza a IA especializada mantendo ChefeSapo2 como subclasse direta de Inimigo.
-    def atualizar(self, blocos, jogador_rect=None, hitbox_escudo=None):
-        ChefeSapo.atualizar(self, blocos, jogador_rect, hitbox_escudo)
-
-    def desenhar(self, tela, camera_x, camera_y, largura_tela, altura_tela):
-        ChefeSapo.desenhar(
-            self, tela, camera_x, camera_y, largura_tela, altura_tela
-        )
-
-
+# Parte do sapo/boss final
 class ChefeSapo(Inimigo):
     """
     Chefe Sapo Mutante Gigante:
@@ -439,10 +429,10 @@ class ChefeSapo(Inimigo):
         self,
         x,
         y,
-        largura=168,
-        altura=180,
-        vida=500,
-        velocidade=3,
+        largura=162,
+        altura=174,
+        vida=250,
+        velocidade=2,
         quadros_movimento=None,
         quadros_investida=None,
         quadros_lingua=None,

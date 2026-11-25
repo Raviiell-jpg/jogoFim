@@ -14,6 +14,33 @@ GRADE_ATAQUE_MONSTROS = {
     "rato": (1, 3),
     "lagartixa": (1, 3),
 }
+SEQUENCIAS_MONSTROS = {
+    "rato": (
+        ("rato1", "rato2", "rato3"),
+        ("ratoAtaque1", "ratoAtaque2", "ratoAtaque3"),
+    ),
+    "tatu": (
+        ("tatu1", "tatu2", "tatu3", "tatu4"),
+        ("tatuAtaque1", "tatuAtaque2"),
+    ),
+    "lagartixa": (
+        ("lagartixa1", "lagartixa2", "lagartixa3", "lagartixa4"),
+        ("lagartixaAtaque1", "lagartixaAtaque2"),
+    ),
+}
+ALIASES_MONSTROS = {
+    "moco": "rato",
+    "rato": "rato",
+    "tatu": "tatu",
+    "calango": "lagartixa",
+    "calando": "lagartixa",
+    "lagartixa": "lagartixa",
+}
+
+
+def resolver_nome_monstro(tipo: str) -> str:
+    """Mapeia nomes do mapa (ex.: moco, calango) para o sprite correspondente."""
+    return ALIASES_MONSTROS.get(tipo.strip().lower(), tipo)
 
 
 def carregar_imagens_monstros(
@@ -78,6 +105,48 @@ def _cortar_quadro(
     if limites.width == 0 or limites.height == 0:
         raise ValueError("A imagem contém um quadro vazio.")
     return imagem.subsurface(limites).copy()
+
+
+def carregar_animacoes_monstros(
+    imagens: Optional[Dict[str, pygame.Surface]] = None,
+    min_alpha: int = 1,
+) -> Dict[str, Tuple[List[pygame.Surface], Optional[List[pygame.Surface]]]]:
+    """Carrega os quadros de movimentação e ataque de cada monstro."""
+    imgs = imagens if imagens is not None else carregar_imagens_monstros()
+    animacoes: Dict[
+        str, Tuple[List[pygame.Surface], Optional[List[pygame.Surface]]]
+    ] = {}
+
+    for nome, (chaves_mov, chaves_atk) in SEQUENCIAS_MONSTROS.items():
+        quadros_mov = [
+            _cortar_quadro(imgs[chave], min_alpha=min_alpha)
+            for chave in chaves_mov
+            if chave in imgs
+        ]
+        quadros_atk = [
+            _cortar_quadro(imgs[chave], min_alpha=min_alpha)
+            for chave in chaves_atk
+            if chave in imgs
+        ]
+
+        if quadros_mov:
+            animacoes[nome] = (quadros_mov, quadros_atk or None)
+            continue
+
+        if nome in imgs and nome in GRADE_MONSTROS:
+            lin, col = GRADE_MONSTROS[nome]
+            quadros_mov = separar_spritesheet(imgs[nome], lin, col, min_alpha=min_alpha)
+            atk_key = f"{nome}Ataque"
+            if atk_key in imgs:
+                lin_a, col_a = GRADE_ATAQUE_MONSTROS.get(nome, (lin, col))
+                quadros_atk = separar_spritesheet(
+                    imgs[atk_key], lin_a, col_a, min_alpha=min_alpha
+                )
+            else:
+                quadros_atk = []
+            animacoes[nome] = (quadros_mov, quadros_atk or None)
+
+    return animacoes
 
 
 def carregar_quadros_sapo(

@@ -36,8 +36,9 @@ from codigos.mapa.mapa_chefeSp import MapaChefe as MapaChefeSp
 from codigos.outros.combate import SistemaCombate
 from codigos.outros.inimigos import Inimigo, ChefeSapo2
 from codigos.outros.monstros import (
-    GRADE_ATAQUE_MONSTROS,
+    carregar_animacoes_monstros,
     carregar_imagens_monstros,
+    resolver_nome_monstro,
     separar_spritesheet,
 )
 from codigos.outros.saude_ import SistemaSaude
@@ -189,22 +190,7 @@ sprite_parado_esq = pygame.transform.flip(sprite_parado, True, False)
 monstros_quadros = {}
 try:
     imgs_monstros = carregar_imagens_monstros()
-    GRADE_MONSTROS = {"tatu": (2, 2), "rato": (2, 2), "lagartixa": (1, 4)}
-    for nome, (lin, col) in GRADE_MONSTROS.items():
-        if nome in imgs_monstros:
-            q_norm = separar_spritesheet(imgs_monstros[nome], lin, col)
-            atk_key = nome + "Ataque"
-            linhas_ataque, colunas_ataque = GRADE_ATAQUE_MONSTROS.get(
-                nome, (lin, col)
-            )
-            q_atk = (
-                separar_spritesheet(
-                    imgs_monstros[atk_key], linhas_ataque, colunas_ataque
-                )
-                if atk_key in imgs_monstros
-                else None
-            )
-            monstros_quadros[nome] = (q_norm, q_atk)
+    monstros_quadros.update(carregar_animacoes_monstros(imgs_monstros))
     # Chefe Sapo Mutante:
     # 1. Movimentação (imagens 1, 2 e 3 nessa ordem)
     quadros_chefe_andando = []
@@ -244,17 +230,20 @@ fase_atual = "predio"  # "predio" ou "chefe"
 mapa = Mapa()
 saude = SistemaSaude(vida_maxima=100)
 combate = SistemaCombate()
-GOLPES_PARA_DERROTAR_CHEFE = 12
 
 total_inimigos_fase = len(mapa.inimigos_iniciais)
 
 def criar_inimigos():
     lista = []
     nomes_disponiveis = [k for k in monstros_quadros.keys() if k != "sapo"] if monstros_quadros else []
-    for x, y in mapa.inimigos_iniciais:
-        if nomes_disponiveis:
-            nome_escolhido = random.choice(nomes_disponiveis)
-            q_n, q_a = monstros_quadros[nome_escolhido]
+    dados_inimigos = getattr(mapa, "dados_inimigos_iniciais", None)
+    alvos = dados_inimigos if dados_inimigos else [(x, y, None) for x, y in mapa.inimigos_iniciais]
+    for x, y, tipo in alvos:
+        nome_sprite = resolver_nome_monstro(tipo) if tipo else None
+        if nome_sprite not in monstros_quadros:
+            nome_sprite = random.choice(nomes_disponiveis) if nomes_disponiveis else None
+        if nome_sprite:
+            q_n, q_a = monstros_quadros[nome_sprite]
             lista.append(Inimigo(x, y, quadros=q_n, quadros_ataque=q_a))
         else:
             lista.append(Inimigo(x, y))
@@ -262,15 +251,15 @@ def criar_inimigos():
 
 def criar_inimigos_chefe():
     lista = []
-    largura_boss = 172
-    altura_boss = 184
+    largura_boss = 162
+    altura_boss = 174
     for x, y in mapa.inimigos_iniciais:
         pos_y = min(y, 21 * getattr(mapa, "tile_size", 32))
         boss = ChefeSapo2(
             x, pos_y,
             largura=largura_boss,
             altura=altura_boss,
-            vida=combate.dano_ataque * GOLPES_PARA_DERROTAR_CHEFE,
+            vida=12 * combate.dano_ataque,
             velocidade=2,
             quadros_movimento=quadros_chefe_andando,
             quadros_investida=quadros_chefe_investida,
@@ -425,7 +414,7 @@ def executar_teleporte_inicio():
 
 def executar_teleporte_saida():
     global vel_x, vel_y, vel_recuo_x
-    if mapa.zona_saida:
+    if mapa.zona_saida and getattr(mapa, "saida_desbloqueada", True):
         jogador_rect.size = (26, 56)
         jogador_rect.topleft = (mapa.zona_saida.x + 10, mapa.zona_saida.bottom - 56)
         vel_x = 0
@@ -450,6 +439,9 @@ def avancar_proxima_fase():
         total_inimigos_fase += len(inimigos)
         registrar_acao_gm("Avançar Fase", "Entrou na Fase 2: Caverna do Chefe")
     elif fase_atual == "chefe":
+        if not getattr(mapa, "saida_desbloqueada", False):
+            registrar_acao_gm("Avançar Fase", "Derrote o chefe antes de concluir a partida")
+            return
         corrida_finalizada = True
         tempo_final_ms = pygame.time.get_ticks() - tempo_inicio_ms - tempo_pausado_acumulado_ms
         if usuario_id is not None:
@@ -462,14 +454,15 @@ def avancar_proxima_fase():
             )
             recorde_pessoal = banco.obter_recorde_pessoal(usuario_id)
         registrar_acao_gm("Avançar Fase", "Chefe superado -> Fuga Bem-Sucedida (Vitória)!")
-        dados_tela_final = {
-            "tempo_ms": tempo_final_ms,
-            "inimigos_derrotados": inimigos_derrotados,
-            "total_inimigos": total_inimigos_fase,
-            "novo_recorde": novo_recorde,
-            "usou_gm": usou_gm,
-        }
-        executando = False
+        if not modo_speedrun:
+            dados_tela_final = {
+                "tempo_ms": tempo_final_ms,
+                "inimigos_derrotados": inimigos_derrotados,
+                "total_inimigos": total_inimigos_fase,
+                "novo_recorde": novo_recorde,
+                "usou_gm": usou_gm,
+            }
+            executando = False
 
 def alternar_fase():
     global fase_atual, mapa, jogador_rect, vel_x, vel_y, vel_recuo_x, inimigos, total_inimigos_fase
@@ -1080,7 +1073,7 @@ while executando:
         inimigos = [inimigo for inimigo in inimigos if inimigo.esta_vivo]
         inimigos_derrotados += (qtd_antes - len(inimigos))
         if fase_atual == "chefe":
-            mapa.saida_desbloqueada = not inimigos
+            mapa.atualizar_saida(len(inimigos) == 0)
 
         # Espinhos
         if not god_mode:
@@ -1100,8 +1093,8 @@ while executando:
         # Saída / Transição de Mapa ou Vitória Final
         if (
             mapa.zona_saida
+            and getattr(mapa, "saida_desbloqueada", True)
             and jogador_rect.colliderect(mapa.zona_saida)
-            and (fase_atual != "chefe" or mapa.saida_desbloqueada)
             and not corrida_finalizada
         ):
             if fase_atual == "predio":
@@ -1133,14 +1126,15 @@ while executando:
                     )
                     recorde_pessoal = banco.obter_recorde_pessoal(usuario_id)
 
-                dados_tela_final = {
-                    "tempo_ms": tempo_final_ms,
-                    "inimigos_derrotados": inimigos_derrotados,
-                    "total_inimigos": total_inimigos_fase,
-                    "novo_recorde": novo_recorde,
-                    "usou_gm": usou_gm,
-                }
-                executando = False
+                if not modo_speedrun:
+                    dados_tela_final = {
+                        "tempo_ms": tempo_final_ms,
+                        "inimigos_derrotados": inimigos_derrotados,
+                        "total_inimigos": total_inimigos_fase,
+                        "novo_recorde": novo_recorde,
+                        "usou_gm": usou_gm,
+                    }
+                    executando = False
 
     # Toast Timer
     if tempo_toast_gm > 0:
@@ -1268,9 +1262,6 @@ while executando:
     cor_fase = (255, 215, 0) if fase_atual == "chefe" else (160, 230, 180)
     txt_f = fonte_gm_dica.render(badge_fase, True, cor_fase)
     tela.blit(txt_f, (40, 102))
-    
-    if not saude.esta_vivo():
-            saude.desenhar_game_over(tela, LARGURA_TELA, ALTURA_TELA)
 
     # Barra de Vida do Chefe
     if fase_atual == "chefe" and inimigos:
@@ -1287,7 +1278,6 @@ while executando:
         largura_vida_boss = int(largura_barra_boss * pct_boss)
         if largura_vida_boss > 0:
             pygame.draw.rect(tela, (230, 30, 45), (bx, by, largura_vida_boss, altura_barra_boss), border_radius=3)
-
         txt_boss = fonte_gm_dica.render(
             f"SAPO MUTANTE ({max(0, boss.vida)}/{boss.vida_maxima} HP)",
             True,
@@ -1629,6 +1619,9 @@ while executando:
                 f"OFICIAL | Seu Recorde: {rec_txt}", True, (255, 215, 0)
             )
         tela.blit(txt_status_sr, (timer_x + 16, timer_y + 72))
+
+    if not saude.esta_vivo():
+        saude.desenhar_game_over(tela, LARGURA_TELA, ALTURA_TELA)
 
     pygame.display.flip()
     relogio.tick(int(60 * multiplicador_jogo))

@@ -18,33 +18,34 @@ from codigos.mapa.mapa_prototipo import (
 DADOS_CAVERNA = [
     # Teto de rocha sólido com estalactites instáveis
     "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-    "X      R                   R                   R           X",
-    "X                                                          X",
-    "X                                                          X",
-    "X          XXXXXXXXXXXX             XXXXXXXXXXXX           X",
-    "X          X          X             X          X           X",
-    "X          X    H     X             X          X           X",
-    "X    LLL   XXXXXXXXXXXX             XXXXXXXXXXXX   LLL     X",
-    "X    LLL                                           LLL     X",
-    "X    LLL                                           LLL     X",
-    "X    LLL                                           LLL     X",
-    "X    LLL                                           LLL     X",
-    "X    LLL       XXXXXXXXXXXXXXXXXXXXXXXXXXXX        LLL     X",
-    "X                                                          X",
-    "X                                                          X",
-    "X                                                          X",
-    "X                                                          X",
-    "X                                                          X",
-    "X                                                          X",
-    "X                                                          X",
-    "X                                                          X",
-    "X                                                          X",
-    "X                                                          X",
-    "X                                                          X",
-    "X                                                          X",
-    "X    P                                         H           X",
-    "X                                                       E  X",
-    "XXXXXXXXXXXSSSSXXXXXXXXXXXXSSSSXXXXXXXXXXXXSSSSXXXXXXXXXXXXX",
+        "X      R                   R                   R           X",
+        "X                                                          X",
+        "X    H                                     H               X",
+        "X   XXXXXXSSS                   R        XXXXXXXX          X",
+        "X                                                          X",
+        "X               H                                          X",
+        "X          XXXXXXXXXXXXSSS          XXXXX                  X",
+        "X                     R                                    X",
+        "X                                                          X",
+        "X                            XXXXXXXXXXXXXX                X",
+        "X                                                          X",
+        "X                                                          X",
+        "X                 XXXXXXXXXXXXXXXXXXXXXXXXX        R       X",
+        "X    XXXXXX         RR                                     X",
+        "X                                                          X",
+        "X                                                          X",
+        "X               XXXXXX                                     X",
+        "X                                                          X",
+        "X       H               L                                  X",
+        "X      XXXXXXXXX        L                                  X",
+        "X          RR           L    RR                            X",
+        "X                       L                                  X",
+        "X                       L                                  X",
+        "X                       L                                  X",
+        "X                                                          X",
+        "X    P                                         H           X",
+        "X                                                       E  X",
+        "XXXXXXXXXXXSSSSXXXXXXXXXXXXSSSSXXXXXXXXXXXXSSSSXXXXXXXXXXXXX",
 ]
 
 # Alias para compatibilidade
@@ -377,6 +378,10 @@ class MapaChefe:
     @property
     def colisoes_com_portas(self):
         return self.obter_blocos_colisao()
+
+    def atualizar_saida(self, chefe_derrotado=False):
+        """Mantem a porta final fechada ate o chefe final ser derrotado."""
+        self.saida_desbloqueada = bool(chefe_derrotado)
 
     def esta_na_escada(self, rect_jogador):
         for escada in self.escadas:
